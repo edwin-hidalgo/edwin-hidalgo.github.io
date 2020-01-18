@@ -75,7 +75,7 @@ p {
 
 
 .img {
-    display: none;
+/*     display: none; */
     height: 70%;
     left: 60%;
     opacity: .9;
