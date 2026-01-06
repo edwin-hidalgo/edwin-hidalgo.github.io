@@ -40,7 +40,7 @@ a {
 
 a:hover,
 .hover:hover {
-    border-color: #ff7600;
+    border-color: #ff0000;
     border-style: solid;
     border-width: 0 0 3px
 }
@@ -59,7 +59,7 @@ h1 {
     margin-top: 50px;
     max-width: 600px;
     width: 80%;
-    color: #ff7600
+    color: #ff0000
 }
 
 h2 {
