@@ -8,6 +8,10 @@
     color: #fff
 }
 
+element.style {
+    background-color: #fafafa;
+}
+
 body {
 	font-family: 'Poppins', sans-serif;
     text-rendering: optimizeLegibility;
