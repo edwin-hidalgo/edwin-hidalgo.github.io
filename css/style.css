@@ -24,7 +24,8 @@ body {
 
 a {
     text-decoration: none;
-    color: inherit
+    color: inherit;
+    border-bottom: 3px solid transparent
 }
 
 .hover {
@@ -49,7 +50,9 @@ a:hover,
     left: 10%;
     top: 10%;
     right: 10%;
-    position: absolute
+    padding-bottom: 80px;
+    position: absolute;
+    z-index: 1
 }
 
 h1 {
@@ -75,7 +78,8 @@ p {
     line-height: 1.5;
     font-size: 12px;
     font-weight: 400;
-    max-width: 600px
+    max-width: 600px;
+    width: 80%
 }
 
 
@@ -105,18 +109,191 @@ p {
     position: absolute;
     z-index: 0;
     width: 100%;
-    height: 100vh;
-	min-height: 100vh;
-    background-color: #fafafa;
-    background-image: url();
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: 50% 50%
+    min-height: 100%;
+    background-color: #fafafa
 }
 
-@media only screen and (max-width: 1050px) {
+#particles-js canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none
+}
+
+.nav-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline
+}
+
+.content h2 {
+    margin-bottom: 0
+}
+
+.content h2 + p {
+    margin-top: 4px
+}
+
+.content p + p {
+    margin-top: 2px
+}
+
+/* Portfolio page — wider layout */
+.page-portfolio h1,
+.page-portfolio h2,
+.page-portfolio p {
+    max-width: none;
+    width: auto
+}
+
+.tab-bar {
+    display: flex;
+    gap: 24px;
+    margin-top: 20px;
+    border-bottom: 1px solid #e8e8e8;
+    padding-bottom: 0
+}
+
+.tab {
+    font-size: 12px;
+    font-weight: 400;
+    color: #888;
+    cursor: pointer;
+    padding-bottom: 12px;
+    border-bottom: 2px solid transparent;
+    transition: color .2s ease-in-out
+}
+
+.tab:hover {
+    color: #282828
+}
+
+.tab.active {
+    color: #ff0000;
+    border-bottom-color: #ff0000
+}
+
+.tab-content {
+    display: none
+}
+
+.tab-content.active {
+    display: block
+}
+
+.entry {
+    margin-top: 32px
+}
+
+.entry-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline
+}
+
+.entry-header h2 {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px
+}
+
+.entry-logo {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    object-fit: cover;
+    flex-shrink: 0
+}
+
+.entry-date {
+    font-size: 12px;
+    font-weight: 400;
+    color: #888;
+    white-space: nowrap;
+    margin-left: 20px
+}
+
+.entry-role {
+    margin-top: 2px;
+    max-width: calc(100% - 480px);
+    color: #888;
+    font-style: italic
+}
+
+.entry-summary {
+    margin-top: 8px;
+    max-width: calc(100% - 480px)
+}
+
+.sub-project {
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid #e8e8e8
+}
+
+.sub-project-text {
+    max-width: calc(100% - 480px)
+}
+
+.sub-project-text p {
+    color: #555
+}
+
+.sub-project-header {
+    font-size: 15px;
+    font-weight: 500;
+    margin: 0
+}
+
+.sub-project-media {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+    justify-content: flex-end;
+    overflow-x: auto;
+    max-width: 100%
+}
+
+.sub-project-media img,
+.sub-project-media video {
+    height: 240px;
+    width: auto;
+    min-width: 0;
+    flex-shrink: 1;
+    border-radius: 4px;
+    object-fit: cover
+}
+
+@media (max-width: 768px) {
+    .entry-header {
+        flex-direction: column
+    }
+    .entry-date {
+        margin-left: 0
+    }
+    .entry-role,
+    .entry-summary {
+        max-width: none
+    }
+    .sub-project-text {
+        max-width: none
+    }
+    .sub-project-media {
+        flex-direction: column
+    }
+    .sub-project-media img,
+    .sub-project-media video {
+        height: auto;
+        width: 100%
+    }
+}
+
+@media only screen and (max-width: 1300px) {
     .img {
-        opacity: .0
+        display: none !important
     }
 }
 
