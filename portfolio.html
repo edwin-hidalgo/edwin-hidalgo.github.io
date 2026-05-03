@@ -333,9 +333,12 @@
 	    document.querySelectorAll('video[autoplay]').forEach(function(v) {
 	      observer.observe(v);
 	    });
-	    document.querySelector('.tab-content.active').querySelectorAll('video[autoplay]').forEach(function(v) {
-	      v.play().catch(function() {});
-	    });
+	    setTimeout(function() {
+	      document.querySelector('.tab-content.active').querySelectorAll('video[autoplay]').forEach(function(v) {
+	        v.muted = true;
+	        v.play().catch(function() {});
+	      });
+	    }, 500);
 	  })();
 	</script>
 
