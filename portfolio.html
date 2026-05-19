@@ -390,51 +390,6 @@
 	  };
 	</script>
 
-	<div class="now-playing hidden" id="now-playing">
-		<a href="#" id="np-link" target="_blank">
-			<img class="now-playing-art" id="np-art" src="" alt="">
-		</a>
-		<div class="now-playing-info">
-			<div class="now-playing-label" id="np-label">Now playing</div>
-			<div class="now-playing-title" id="np-title"></div>
-			<div class="now-playing-artist" id="np-artist"></div>
-		</div>
-	</div>
-
-	<script>
-	  (function() {
-	    var API = 'https://spotify-now-playing-blond-five.vercel.app/api/now-playing';
-	    var widget = document.getElementById('now-playing');
-	    var art = document.getElementById('np-art');
-	    var title = document.getElementById('np-title');
-	    var artist = document.getElementById('np-artist');
-	    var label = document.getElementById('np-label');
-	    var link = document.getElementById('np-link');
-
-	    function update() {
-	      fetch(API + '?t=' + Date.now())
-	        .then(function(r) { return r.json(); })
-	        .then(function(data) {
-	          if (!data.title) {
-	            widget.classList.add('hidden');
-	            return;
-	          }
-	          art.src = data.albumArt || '';
-	          title.textContent = data.title;
-	          artist.textContent = data.artist;
-	          label.textContent = data.isPlaying ? 'Now playing' : 'Last played';
-	          link.href = data.spotifyUrl || '#';
-	          widget.classList.remove('hidden');
-	        })
-	        .catch(function() {
-	          widget.classList.add('hidden');
-	        });
-	    }
-
-	    update();
-	    setInterval(update, 30000);
-	  })();
-	</script>
 
 </body>
 
