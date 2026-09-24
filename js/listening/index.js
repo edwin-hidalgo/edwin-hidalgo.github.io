@@ -14,7 +14,6 @@
 
 import { render as renderLately, playAll } from './lately.js';
 import { render as renderAnchor, loadAnchor } from './anchor.js';
-import { render as renderGuest } from './guest.js';
 import { renderStanding } from './standing.js';
 import { playFrom } from './track.js';
 import { startMarquee } from './marquee.js';
@@ -89,14 +88,12 @@ export async function boot() {
 			<button class="play-all" type="button"><span class="play-all-icon" aria-hidden="true">&#9654;</span><span class="play-all-text">Play</span></button>
 			<div class="anchor" hidden></div>
 			<div class="lately"><p class="listening-empty">Finding out&hellip;</p></div>
-			<div class="guest"></div>
 		</div>`;
 
 	const toggle = root.querySelector('.quiet-toggle');
 	const playAllBtn = root.querySelector('.play-all');
 	const latelyEl = root.querySelector('.lately');
 	const anchorEl = root.querySelector('.anchor');
-	const guestEl = root.querySelector('.guest');
 
 	let payload = null;
 
@@ -106,7 +103,6 @@ export async function boot() {
 		playAllBtn.hidden = quiet;
 		if (payload) renderLately(latelyEl, payload, getQuiet);
 		renderAnchor(anchorEl, getQuiet);
-		renderGuest(guestEl, getQuiet);
 	}
 
 	toggle.addEventListener('click', () => {
