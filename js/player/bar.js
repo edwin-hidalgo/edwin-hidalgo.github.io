@@ -14,10 +14,16 @@
 import * as player from './engine.js';
 import { esc } from '../listening/format.js';
 import { renderLinks } from '../listening/links.js';
+import { icon } from '../icons.js';
 
 let bar = null;
 let els = null;
 let lastUrl = null;
+// Pressing the close button is not the same as a run ending. A run that ends
+// leaves the bar up offering to replay itself -- that is deliberate. But the
+// X has to mean gone, and stopAll() alone did not do that, because stop()
+// preserves lastQueue and the bar takes that as a reason to stay.
+let dismissed = false;
 
 const clock = s => {
 	if (!Number.isFinite(s) || s < 0) s = 0;
@@ -36,9 +42,9 @@ function build() {
 				<p class="player-meta"><span class="player-label"></span></p>
 			</div>
 			<div class="player-transport">
-				<button class="player-btn" type="button" data-act="prev" aria-label="Previous track">&#9664;&#9664;</button>
+				<button class="player-btn" type="button" data-act="prev" aria-label="Previous track">${icon.prev(16)}</button>
 				<button class="player-play" type="button" data-act="toggle" aria-label="Play"></button>
-				<button class="player-btn" type="button" data-act="next" aria-label="Next track">&#9654;&#9654;</button>
+				<button class="player-btn" type="button" data-act="next" aria-label="Next track">${icon.next(16)}</button>
 			</div>
 			<div class="player-seek" role="slider" tabindex="0"
 			     aria-label="Seek" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
@@ -46,7 +52,7 @@ function build() {
 			</div>
 			<span class="player-time"></span>
 			<span class="player-links"></span>
-			<button class="player-btn player-close" type="button" data-act="stop" aria-label="Stop">&times;</button>
+			<button class="player-btn player-close" type="button" data-act="stop" aria-label="Stop and close the player">${icon.close(15)}</button>
 		</div>`;
 	document.body.appendChild(bar);
 
@@ -65,7 +71,11 @@ function build() {
 		const act = e.target.closest('[data-act]')?.dataset.act;
 		if (act === 'prev') player.skipBack();
 		else if (act === 'next') player.skipNext();
-		else if (act === 'stop') player.stopAll();
+		else if (act === 'stop') {
+			dismissed = true;
+			player.stopAll();
+			paintTrack();
+		}
 		else if (act === 'toggle') player.togglePlay();
 	});
 
@@ -107,8 +117,11 @@ function paintTrack() {
 	const np = player.nowPlaying();
 	const state = player.playState();
 
-	// Nothing playing and nothing to replay: there is no bar.
-	if (!np && !player.hasLastQueue()) {
+	// Anything newly playing un-dismisses: pressing play anywhere brings it back.
+	if (np) dismissed = false;
+
+	// Nothing playing and nothing to replay -- or dismissed by hand.
+	if (dismissed || (!np && !player.hasLastQueue())) {
 		bar.hidden = true;
 		document.body.classList.remove('has-player');
 		lastUrl = null;
@@ -138,7 +151,7 @@ function paintTrack() {
 
 	// Idle with a remembered run: the button offers to start it again.
 	const playing = state === 'playing';
-	els.play.textContent = playing ? '❙❙' : '▶';
+	els.play.innerHTML = playing ? icon.pause(18) : icon.play(18);
 	els.play.setAttribute('aria-label', playing ? 'Pause' : state === 'idle' ? 'Play again' : 'Play');
 }
 

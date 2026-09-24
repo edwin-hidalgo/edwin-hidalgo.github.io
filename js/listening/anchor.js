@@ -1,19 +1,21 @@
-// One track Edwin chose, and why.
+// The pinned song: one track Edwin chose, and why.
 //
-// This is the authored half of the section and the reason it reads as a room
-// rather than a readout: a feed of scrobbles is data, a sentence about a song
-// is a person. Edwin edits data/anchor.json by hand; an empty file renders
-// nothing at all, so the section is never padded with a placeholder.
+// This is the authored half of the room and the reason it reads as a room
+// rather than a readout -- a feed of scrobbles is data, a sentence about a song
+// is a person. It sits in its own card, labelled, because nothing about a track
+// sitting above a list says "this one is different and these words are mine".
+//
+// Edwin edits data/anchor.json by hand. An empty file renders nothing at all,
+// so the room is never padded with a placeholder.
 
 import { esc } from './format.js';
-import { playFrom, rowKey } from './track.js';
+import { playFrom, rowKey, resolveTrack } from './track.js';
+import { icon } from '../icons.js';
 import * as player from '../player/engine.js';
 
-const LABEL = 'Anthem';
+const LABEL = 'Pinned';
 let cached = null;
 
-// Shared with the home page's Play button, which opens with the anthem before
-// rolling into recent listens.
 export async function loadAnchor() {
 	if (cached !== null) return cached;
 	try {
@@ -26,36 +28,51 @@ export async function loadAnchor() {
 	return cached;
 }
 
-export async function render(el, getQuiet) {
+export async function render(el) {
 	const a = await loadAnchor();
 	if (!a) {
 		el.hidden = true;
 		return;
 	}
+	const key = rowKey(a, 0, 'pin');
 
 	el.hidden = false;
-	el.innerHTML = `${a.note ? `<p class="anchor-note">${esc(a.note)}</p>` : ''}
-		<div class="row">
-			<button class="row-open" type="button" data-key="${esc(rowKey(a, 0))}">
-				<span class="row-body"><span class="row-title">${esc(a.artist)} &mdash; ${esc(a.track)}</span></span>
-				<span class="row-when">${esc(a.since || 'on repeat')}</span>
-				<span class="row-state" aria-hidden="true"></span>
-			</button>
-		</div>`;
+	el.innerHTML = `<p class="pin-label">Pinned</p>
+		${a.note ? `<blockquote class="pin-note">${esc(a.note)}</blockquote>` : ''}
+		<button class="pin-track" type="button" data-key="${esc(key)}">
+			<span class="pin-art"></span>
+			<span class="pin-meta">
+				<span class="pin-title">${esc(a.track)}</span>
+				<span class="pin-artist">${esc(a.artist)}</span>
+				${a.since ? `<span class="pin-since">${esc(a.since)}</span>` : ''}
+			</span>
+			<span class="pin-state">${icon.play(13)}</span>
+		</button>`;
 
-	const btn = el.querySelector('.row-open');
+	const btn = el.querySelector('.pin-track');
 	btn.addEventListener('click', () => {
-		if (getQuiet()) return;
-		if (player.currentOwner() === btn.dataset.key) return player.togglePlay();
-		playFrom([a], 0, LABEL);
+		if (player.currentOwner() === key) return player.togglePlay();
+		playFrom([a], 0, LABEL, 'pin');
 	});
 
 	const mark = () => {
-		const mine = player.currentOwner() === btn.dataset.key;
+		const mine = player.currentOwner() === key;
 		btn.classList.toggle('is-playing', mine);
-		btn.querySelector('.row-state').textContent =
-			mine ? (player.playState() === 'playing' ? '❙❙' : '▶') : '';
+		btn.querySelector('.pin-state').innerHTML =
+			mine && player.playState() === 'playing' ? icon.pause(13) : icon.play(13);
 	};
 	player.subscribe(reason => { if (reason !== 'progress') mark(); });
 	mark();
+
+	// anchor.json carries no artwork -- it is three strings Edwin typed. Resolve
+	// it the same way a row does, which is why the pinned song used to be the
+	// only thing in the room without a cover.
+	const data = await resolveTrack(a.artist, a.track);
+	if (data?.artwork) {
+		const img = new Image();
+		img.className = 'pin-art';
+		img.alt = '';
+		img.src = data.artwork;
+		el.querySelector('.pin-art')?.replaceWith(img);
+	}
 }

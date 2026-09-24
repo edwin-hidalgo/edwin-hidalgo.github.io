@@ -30,9 +30,12 @@ export function renderStanding(row, payload) {
 		return;
 	}
 
+	// Two states, and the difference does real work: a pulsing dot and the words
+	// "listening now" when it is genuinely live, versus the track and how long
+	// ago when it is not. A single static dot was too quiet to carry that.
 	const label = `${esc(track.artist)} &mdash; ${esc(track.track)}`;
 	slot.innerHTML = live
-		? `<span class="live-dot"></span>${label}`
+		? `<span class="live-dot is-live"></span><span class="now-word">listening now</span> ${label}`
 		: `${label}${track.playedAt ? `, ${timeAgo(track.playedAt)}` : ''}`;
 	row.hidden = false;
 }
