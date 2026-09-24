@@ -642,6 +642,7 @@
 
 	/* The belt stops, and the viewport becomes scrollable instead -- the line is
 	   still there to be read, it just no longer moves on its own. */
+	.ticker { animation: none; }
 	.ticker-belt { animation: none; }
 	.ticker-viewport { overflow-x: auto; }
 	.ticker-belt .ticker-run:nth-child(2) { display: none; }
@@ -693,6 +694,13 @@
 
 @media only screen and (max-width: 1100px) {
 	[data-ticker]:not([hidden]) { display: block; }
+
+	/* The Lounge never shows one. Said in CSS rather than in JS because the host
+	   sits at <body> level and survives the swap, so a JS hide that waits on
+	   /api/lately left the previous page's ticker visibly sitting on the Lounge
+	   for over a second. A body class is set synchronously by js/nav.js, so this
+	   applies in the first frame after the swap. */
+	.page-lounge [data-ticker] { display: none; }
 }
 
 .ticker {
@@ -707,12 +715,25 @@
 	border-bottom: 1px solid var(--line);
 	font-size: 12px;
 	overflow: hidden;
+	/* The room it occupies is reserved from the first frame; this is only the
+	   ticker arriving into it, and a fade reads as intentional where a pop
+	   reads as something having gone wrong. */
+	animation: eh-fade .16s ease-out;
 }
 
 /* The page is absolutely positioned against #particles-js, so it knows nothing
-   about a fixed bar above it. Only while the ticker is actually up. */
+   about a fixed bar above it and has to be told.
+
+   Reserved from the PAGE, not from whether the ticker has loaded. Keyed on
+   body.has-ticker it was applied only after /api/lately returned, so every page
+   sat 35px too high for 1.3-1.7 seconds and then jumped -- measured at t=1698ms
+   on Portfolio and t=1276ms on About -- and entering the Lounge it jumped back
+   the other way. The body class comes from the HTML and js/nav.js copies it
+   synchronously, so this is settled before the first frame and nothing moves.
+   Same reasoning as .content's padding-bottom above: a constant footprint is
+   worth more than a precisely-sized one that arrives late. */
 @media only screen and (max-width: 1100px) {
-	body.has-ticker .content { margin-top: 35px; }
+	body:not(.page-lounge) .content { margin-top: 35px; }
 }
 
 .ticker-viewport {
@@ -754,6 +775,20 @@
 	align-items: center;
 	gap: 6px;
 	color: var(--muted);
+}
+
+/* Anchor points. A belt of uniform type is hard to read out of the corner of an
+   eye; an image-then-text rhythm gives it somewhere to land. The empty variant
+   is the same box with no picture in it, so a track Last.fm has no artwork for
+   -- about one in seven -- does not break the rhythm. */
+.ticker-art {
+	width: 20px;
+	height: 20px;
+	flex: none;
+	margin-right: 2px;
+	border-radius: 2px;
+	object-fit: cover;
+	background: var(--line-soft);
 }
 
 /* The separator belongs to the item rather than to the markup, so the belt is

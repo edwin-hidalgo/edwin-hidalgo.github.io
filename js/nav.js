@@ -14,7 +14,7 @@
 // which is why the background never restarts between pages.
 
 // Classes owned by the running session rather than by any one page.
-const RUNTIME_CLASSES = ['has-player', 'has-ticker'];
+const RUNTIME_CLASSES = ['has-player'];
 
 const PAGES = /(^|\/)(index|portfolio|lounge)\.html$|\/$/;
 

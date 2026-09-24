@@ -33,9 +33,27 @@ const ITEMS = 8;
 // Pixels per second. Slow enough to read a title as it goes by.
 const SPEED = 45;
 
+// Last.fm hands /api/lately the 300x300 image, which is 14KB for a square drawn
+// at 20. The CDN serves a 64s variant of the same hash at 1.6KB -- verified
+// against the live host, not assumed -- so nine thumbnails cost about 15KB
+// rather than 126KB. If the path ever stops matching, the original URL is
+// returned untouched and the bar degrades to heavy images rather than broken
+// ones.
+function thumb(url) {
+	return String(url || '').replace(/\/i\/u\/\d+x\d+\//, '/i/u/64s/');
+}
+
+function art(track) {
+	// A track with no artwork still gets a box of the same size. Collapsing it
+	// would break the image-text-image rhythm that makes the belt scannable,
+	// which is the entire reason the artwork is here.
+	if (!track.art) return `<span class="ticker-art is-empty" aria-hidden="true"></span>`;
+	return `<img class="ticker-art" src="${esc(thumb(track.art))}" alt="" width="20" height="20">`;
+}
+
 function item(track, cls = '') {
 	const when = track.playedAt ? `<span class="ticker-when">${esc(timeAgoShort(track.playedAt))}</span>` : '';
-	return `<span class="ticker-item ${cls}">
+	return `<span class="ticker-item ${cls}">${art(track)}
 		<span class="ticker-artist">${esc(track.artist)}</span>
 		<span class="ticker-track">${esc(track.track)}</span>${when}
 	</span>`;
@@ -55,7 +73,6 @@ export function renderTicker(payload) {
 	const hide = () => {
 		host.hidden = true;
 		host.innerHTML = '';
-		document.body.classList.remove('has-ticker');
 	};
 
 	// The Lounge is the room itself, and a ticker there would say in one moving
@@ -84,7 +101,6 @@ export function renderTicker(payload) {
 			</span>
 		</a>`;
 	host.hidden = false;
-	document.body.classList.add('has-ticker');
 
 	return host.querySelector('.ticker-belt');
 }
