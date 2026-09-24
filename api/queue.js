@@ -18,7 +18,7 @@
 
 import { recentTracks } from './_lastfm.js';
 import { fold, sameTrack } from './_fold.js';
-import { readQueue, updateQueue, blobConfigured } from './_store.js';
+import { readView, listSongs, writeSong, rebuildView, claimSubmission, sweepThrottle, blobConfigured } from './_store.js';
 import { fromItunes, searchLinks } from './_itunes.js';
 import { createHash, randomUUID } from 'node:crypto';
 
@@ -28,11 +28,11 @@ import { createHash, randomUUID } from 'node:crypto';
 const SHOWN = 8;
 const PLAYED_TTL_MS = 24 * 60 * 60 * 1000;
 
-// One submission per visitor per day. Nothing in this codebase has ever
+// One submission per visitor per day, enforced by an atomic blob create rather
+// than a counter someone could race. Nothing in this codebase had ever
 // throttled anything, and unmoderated plus unthrottled means one person with a
 // script owns the room -- which breaks the feature long before anything
 // offensive does.
-const THROTTLE_DAYS = 1;
 
 const MAX_ARTIST = 200;
 const MAX_TRACK = 300;
@@ -60,14 +60,6 @@ function visitorHash(req) {
   return createHash('sha256').update(`${ip}|${salt}`).digest('hex').slice(0, 32);
 }
 
-function prune(throttle) {
-  const cutoff = Date.now() - THROTTLE_DAYS * 24 * 60 * 60 * 1000;
-  const kept = {};
-  for (const [hash, day] of Object.entries(throttle || {})) {
-    if (Date.parse(`${day}T00:00:00Z`) >= cutoff) kept[hash] = day;
-  }
-  return kept;
-}
 
 // What the page is allowed to see. Never the visitor hashes, and never the
 // folded strings -- those are matching machinery, not content.
@@ -152,16 +144,20 @@ export default async function handler(req, res) {
   // otherwise static. Thirty seconds matches the rest of the site.
   res.setHeader('cache-control', 'public, s-maxage=30, stale-while-revalidate=60');
 
-  const [{ data }, lately] = await Promise.all([readQueue(), recentTracks(100)]);
+  const [view, lately] = await Promise.all([readView(), recentTracks(100)]);
   const scrobbles = [lately.nowPlaying, ...(lately.recent ?? [])].filter(Boolean);
-  const { songs, changed } = reconcile(data.songs, scrobbles);
+  const { songs, changed } = reconcile(view.songs, scrobbles);
 
   if (changed) {
-    // Best effort. A lost race here just means the next reader marks it.
-    updateQueue(current => {
-      const merged = reconcile(current.songs, scrobbles);
-      return merged.changed ? { ...current, songs: merged.songs } : null;
-    }).catch(() => {});
+    // Persist the play against the song's own blob, then refresh the view.
+    // Best effort: the response already reflects it, and a failure here just
+    // means the next reader does the same work.
+    (async () => {
+      const fresh = reconcile(await listSongs(), scrobbles);
+      if (!fresh.changed) return;
+      await Promise.all(fresh.songs.filter(s => s.playedAt).map(writeSong));
+      await rebuildView();
+    })().catch(() => {});
   }
 
   // Which rows in the recent-listens list came from a visitor. Sent separately
@@ -245,21 +241,37 @@ async function submit(req, res) {
     hidden: false,
   };
 
-  let rejected = null;
-  const result = await updateQueue(current => {
-    const throttle = prune(current.throttle);
-    if (throttle[hash] === day) { rejected = 'rate_limited'; return null; }
-    // Leaving the same song twice makes the queue a wall rather than a shelf.
-    const already = current.songs.some(s =>
-      !s.playedAt && sameTrack(s.foldArtist, s.foldTrack, entry.artist, entry.track));
-    if (already) { rejected = 'duplicate'; return null; }
-    return {
-      songs: [entry, ...current.songs].slice(0, 500),
-      throttle: { ...throttle, [hash]: day },
-    };
-  });
+  // Nothing below reads-then-writes. The throttle is an atomic create, and the
+  // song is its own blob at a unique path, so two visitors submitting in the
+  // same instant cannot overwrite each other -- which is exactly what the
+  // single-file version did.
+  let songs;
+  try {
+    songs = await listSongs();
+  } catch {
+    return bad(res, 'busy');
+  }
 
-  if (rejected) return bad(res, rejected);
-  if (!result.ok) return bad(res, 'busy');
+  // Leaving the same song twice makes the queue a wall rather than a shelf.
+  const already = songs.some(s =>
+    !s.playedAt && !s.hidden && sameTrack(s.foldArtist, s.foldTrack, entry.artist, entry.track));
+  if (already) return bad(res, 'duplicate');
+
+  let claimed = false;
+  try {
+    claimed = await claimSubmission(day, hash);
+  } catch {
+    return bad(res, 'busy');
+  }
+  if (!claimed) return bad(res, 'rate_limited');
+
+  try {
+    await writeSong(entry);
+    await rebuildView();
+  } catch {
+    return bad(res, 'busy');
+  }
+
+  sweepThrottle(day).catch(() => {});
   return res.status(200).json({ ok: true, song: publicShape(entry) });
 }

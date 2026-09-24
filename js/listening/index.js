@@ -137,11 +137,16 @@ export async function boot() {
 	const paintQueue = q => {
 		renderQueue(queueEl, q);
 		applyMarks(latelyEl, q?.marks);
-		const toggle = mountLeave(leaveHost, q?.emoji, async () => {
-			// Re-read rather than splicing the new song in locally: the server
-			// decides ordering, and a page that guessed would disagree with the
-			// next visitor's view of the same queue.
-			paintQueue(await fetchQueue());
+		const toggle = mountLeave(leaveHost, q?.emoji, async song => {
+			// Show it immediately, using what the server actually returned rather
+			// than anything this page invented. Re-reading alone would not do:
+			// the queue's view is CDN-cached for thirty seconds, so a visitor who
+			// had just left a song would not find it there.
+			const fresh = await fetchQueue();
+			const known = song && fresh.songs?.some(s => s.id === song.id);
+			paintQueue(song && !known
+				? { ...fresh, songs: [song, ...(fresh.songs ?? [])] }
+				: fresh);
 		});
 		queueEl.querySelector('[data-leave]')?.addEventListener('click', () => toggle?.());
 	};

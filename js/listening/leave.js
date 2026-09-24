@@ -117,7 +117,11 @@ export function mountLeave(host, emoji, onDone) {
         const data = await res.json();
         if (data?.ok) {
           close();
-          onDone?.();
+          // Hand the song back so the caller can show it at once. The queue's
+          // read view is CDN-cached for thirty seconds, so re-fetching would
+          // leave the visitor staring at a list that does not yet contain what
+          // they just left.
+          onDone?.(data.song);
           return;
         }
         note.textContent = REASONS[data?.reason] ?? 'That did not work. Try again?';
