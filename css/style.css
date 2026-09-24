@@ -444,6 +444,12 @@ p {
 
 .corner-nav h1 { margin-top: 0; width: auto; max-width: none; }
 
+/* The base stylesheet sizes h1, h2 and p at width:80%, which is right for the
+   text column and wrong here: the two lines under "Lounge" came out 43px short
+   of it (172px inside a 215px box -- exactly 80%), which is the misalignment
+   that made the corner look off. */
+.corner-nav p { width: auto; max-width: none; }
+
 /* The live line. Muted, because it is a detail under the link rather than a
    headline -- and it may be absent entirely, which must not leave a hole. */
 .corner-now {

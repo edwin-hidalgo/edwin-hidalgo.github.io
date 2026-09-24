@@ -5,6 +5,7 @@
 // photos, the listening section) after each swap.
 
 import { initHover } from './hover.js';
+import { initPortfolio } from './portfolio.js';
 import { initNav } from './nav.js';
 import { mountPlayerBar } from './player/bar.js';
 import { boot as bootListening } from './listening/index.js';
@@ -13,6 +14,7 @@ import { boot as bootListening } from './listening/index.js';
 // replaces it.
 function initPage() {
 	initHover();
+	initPortfolio();
 	bootListening();
 }
 

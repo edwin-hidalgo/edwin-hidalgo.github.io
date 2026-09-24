@@ -253,6 +253,15 @@
 
 				<div class="entry">
 					<div class="entry-header">
+						<h2><img src="img/portfolio/logo-everythinghums.png" alt="" class="entry-logo"><a href="https://everythinghums.com" target="_blank">everything hums</a></h2>
+						<span class="entry-date">2026</span>
+					</div>
+					<p class="entry-role">Turn any image into music &mdash; stills, GIFs and video</p>
+					<p class="entry-summary">A client-side instrument that reads an image and plays what it finds. A still gets a playhead swept across its lines; a GIF or video already has a timeline, so what moves is what sounds. Built with vanilla JavaScript, Canvas and Web Audio &mdash; nothing leaves the device.</p>
+				</div>
+
+				<div class="entry">
+					<div class="entry-header">
 						<h2><img src="img/portfolio/logo-onus.svg" alt="" class="entry-logo"><a href="https://onus.fm" target="_blank">ONUS</a></h2>
 						<span class="entry-date">2026</span>
 					</div>
@@ -304,54 +313,6 @@
 		</div>
 	</div>
 
-	<script>
-	  (function() {
-	    function switchTab(tabId) {
-	      document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
-	      document.querySelectorAll('.tab-content').forEach(function(c) {
-	        c.classList.remove('active');
-	        c.querySelectorAll('video').forEach(function(v) { v.pause(); });
-	      });
-	      var tab = document.querySelector('.tab[data-tab="' + tabId + '"]');
-	      var content = document.getElementById(tabId);
-	      if (tab) tab.classList.add('active');
-	      if (content) {
-	        content.classList.add('active');
-	        content.querySelectorAll('video[autoplay]').forEach(function(v) { v.play(); });
-	      }
-	    }
-	    document.querySelectorAll('.tab').forEach(function(tab) {
-	      tab.addEventListener('click', function() {
-	        switchTab(this.getAttribute('data-tab'));
-	        history.replaceState(null, '', '#' + this.getAttribute('data-tab'));
-	      });
-	    });
-	    var hash = window.location.hash.replace('#', '');
-	    if (hash === 'advisory' || hash === 'projects') {
-	      history.replaceState(null, '', window.location.pathname);
-	      switchTab(hash);
-	    }
-	    window.scrollTo(0, 0);
-	    var observer = new IntersectionObserver(function(entries) {
-	      entries.forEach(function(entry) {
-	        if (entry.isIntersecting) {
-	          entry.target.play().catch(function() {});
-	        } else {
-	          entry.target.pause();
-	        }
-	      });
-	    }, { threshold: 0.3 });
-	    document.querySelectorAll('video[autoplay]').forEach(function(v) {
-	      observer.observe(v);
-	    });
-	    setTimeout(function() {
-	      document.querySelector('.tab-content.active').querySelectorAll('video[autoplay]').forEach(function(v) {
-	        v.muted = true;
-	        v.play().catch(function() {});
-	      });
-	    }, 500);
-	  })();
-	</script>
 
 	<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
 	<script>

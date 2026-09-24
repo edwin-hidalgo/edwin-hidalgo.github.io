@@ -497,3 +497,38 @@ button.now:hover .now-title { color: var(--accent); }
 .corner-now .marquee {
 	text-align: left;
 }
+
+/* ── The corner line ──────────────────────────────────────────────────────── */
+
+/* One row under the label, matching Elsewhere and Portfolio beside it: the
+   track title first, then the two things you can do. Title first because it is
+   the part that changes -- the controls are always the same two words.
+
+   Right-anchored, flush with the edge "Lounge" already sits on. */
+.corner-line {
+	display: flex;
+	justify-content: flex-end;
+	align-items: baseline;
+	gap: 7px;
+	white-space: nowrap;
+	margin: 0;
+}
+
+/* The only flexible item: it gives up width first and clips, so the controls
+   are never pushed off the edge by a long title. */
+.corner-now {
+	flex: 0 1 auto;
+	min-width: 0;
+	font-size: 12px;
+	color: var(--muted);
+}
+
+.corner-now[hidden] { display: none; }
+.corner-sep { color: var(--muted); }
+
+@media only screen and (max-width: 768px) {
+	/* Stacked footer: the title gets its own line rather than squeezing the
+	   controls down to nothing. */
+	.corner-line { flex-wrap: wrap; justify-content: flex-start; }
+	.corner-now { flex-basis: 100%; }
+}
