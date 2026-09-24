@@ -18,9 +18,23 @@ import { renderStanding } from './standing.js';
 import { playFrom } from './track.js';
 import { startMarquee } from './marquee.js';
 import { renderTicker, startTicker } from './ticker.js';
+import { renderQueue, applyMarks } from './queue.js';
+import { mountLeave } from './leave.js';
 import { icon } from '../icons.js';
 import { mountPlayerBar } from '../player/bar.js';
 import * as player from '../player/engine.js';
+
+// The queue is a second endpoint rather than a field on /api/lately, because
+// the two have different lifetimes and different honesty rules -- see the
+// header of api/queue.js.
+async function fetchQueue() {
+	try {
+		const res = await fetch('/api/queue');
+		return res.ok ? await res.json() : { off: true, songs: [], marks: [] };
+	} catch {
+		return { off: true, songs: [], marks: [] };
+	}
+}
 
 async function fetchLately() {
 	try {
@@ -91,7 +105,11 @@ export async function boot() {
 				</div>
 				<div class="lately"><p class="listening-empty">Finding out&hellip;</p></div>
 			</div>
-			<aside class="pin" hidden></aside>
+			<aside class="room-side">
+				<div class="pin" hidden></div>
+				<section class="queue" hidden></section>
+				<div class="leave-host" hidden></div>
+			</aside>
 		</div>`;
 
 	const playAllBtn = root.querySelector('.play-all');
@@ -105,8 +123,29 @@ export async function boot() {
 	syncPlayLabel(playAllBtn, '.play-all-icon', '.play-all-text', 16);
 
 	renderAnchor(root.querySelector('.pin'));
-	payload = await fetchLately();
+
+	const queueEl = root.querySelector('.queue');
+	const leaveHost = root.querySelector('.leave-host');
+
+	// Both lists come from one round of fetching. The queue's GET also
+	// reconciles plays against Edwin's scrobbles, so it has to land before the
+	// log is marked up.
+	const [lately, queue] = await Promise.all([fetchLately(), fetchQueue()]);
+	payload = lately;
 	renderLately(latelyEl, payload);
+
+	const paintQueue = q => {
+		renderQueue(queueEl, q);
+		applyMarks(latelyEl, q?.marks);
+		const toggle = mountLeave(leaveHost, q?.emoji, async () => {
+			// Re-read rather than splicing the new song in locally: the server
+			// decides ordering, and a page that guessed would disagree with the
+			// next visitor's view of the same queue.
+			paintQueue(await fetchQueue());
+		});
+		queueEl.querySelector('[data-leave]')?.addEventListener('click', () => toggle?.());
+	};
+	paintQueue(queue);
 	// Called on the Lounge too, where it hides itself: the host lives at <body>
 	// level and therefore survives the soft navigation that brought us here.
 	startTicker(renderTicker(payload));

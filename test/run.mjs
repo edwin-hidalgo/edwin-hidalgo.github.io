@@ -6,6 +6,7 @@
 
 import lately from '../api/lately.js';
 import resolve from '../api/resolve.js';
+import { fold, sameish, sameTrack } from '../api/_fold.js';
 
 let pass = 0;
 let fail = 0;
@@ -280,6 +281,37 @@ p.playFromList(['a.mp3', 'b.mp3'], 0);
 p.stopAll();
 ok('stopAll clears playback', p.nowPlaying() === null);
 ok('stopAll keeps the last run', p.hasLastQueue() === true);
+
+// ── the queue's matching ────────────────────────────────────────────────────
+//
+// This is what decides whether the site says Edwin played a song someone left
+// for him. A false positive puts words in his mouth, so the loose test is
+// deliberately not allowed to run on short strings.
+console.log('\nqueue matching');
+
+ok('a remaster still matches the plain title',
+  sameish(fold('Pink Moon'), fold('Pink Moon (2011 Remaster)')));
+
+ok('a featuring credit still matches',
+  sameish(fold('Nikes'), fold('Nikes (feat. Someone)')));
+
+ok('short titles require exact agreement, not containment',
+  sameish(fold('DNA'), fold('DNA')) && !sameish(fold('One'), fold('One More Time')));
+
+ok('both halves have to agree',
+  sameTrack(fold('Nick Drake'), fold('Pink Moon'), 'Nick Drake', 'Pink Moon (2011 Remaster)')
+  && !sameTrack(fold('Nick Drake'), fold('Pink Moon'), 'Someone Else', 'Pink Moon'));
+
+ok('a cover by another artist is not the same track',
+  !sameTrack(fold('Bon Iver'), fold('Holocene'), 'Vitamin String Quartet', 'Holocene'));
+
+ok('empty folds never match',
+  !sameish('', '') && !sameTrack('', '', 'a', 'b'));
+
+// The regression the shared fold() exists to protect: an earlier version
+// treated "with" as a featuring marker and ate the whole title.
+ok('"With Love, Pt. 7" survives folding', fold('With Love, Pt. 7') === 'withlovept7');
+ok('"Dancing With Myself" survives folding', fold('Dancing With Myself') === 'dancingwithmyself');
 
 Object.assign(process.env, env);
 console.log(`\n${fail === 0 ? 'ALL PASS' : 'FAILURES'}  ${pass} passed, ${fail} failed\n`);

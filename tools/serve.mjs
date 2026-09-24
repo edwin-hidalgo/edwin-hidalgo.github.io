@@ -18,10 +18,14 @@ const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const PORT = Number(process.env.PORT) || 4321;
 
 // Same parsing Vercel does for you: KEY=value, blank lines and # ignored.
-if (existsSync(join(ROOT, '.env'))) {
-	for (const line of readFileSync(join(ROOT, '.env'), 'utf8').split('\n')) {
+// .env holds the Last.fm key; .env.local is written by `vercel blob create-store`
+// and carries the Blob token. First file to set a name wins, so .env still
+// takes precedence over anything the CLI pulled down.
+for (const name of ['.env', '.env.local']) {
+	if (!existsSync(join(ROOT, name))) continue;
+	for (const line of readFileSync(join(ROOT, name), 'utf8').split('\n')) {
 		const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
-		if (m && !process.env[m[1]]) process.env[m[1]] = m[2];
+		if (m && !process.env[m[1]]) process.env[m[1]] = m[2].replace(/^["']|["']$/g, '');
 	}
 }
 
@@ -42,6 +46,7 @@ const TYPES = {
 const handlers = {
 	'/api/lately': () => import('../api/lately.js'),
 	'/api/resolve': () => import('../api/resolve.js'),
+	'/api/queue': () => import('../api/queue.js'),
 };
 
 createServer(async (req, res) => {
@@ -62,7 +67,24 @@ createServer(async (req, res) => {
 		};
 		try {
 			const mod = await route();
-			await mod.default({ query: Object.fromEntries(url.searchParams), method: req.method }, shim);
+			// Vercel parses a JSON body and hands it over as req.body. This shim
+			// passed none at all, which meant a POST endpoint could not be
+			// developed locally -- the handler saw an empty request and every
+			// submission looked malformed.
+			let body;
+			if (req.method === 'POST' || req.method === 'PUT') {
+				const chunks = [];
+				for await (const chunk of req) chunks.push(chunk);
+				const raw = Buffer.concat(chunks).toString('utf8');
+				if (raw) { try { body = JSON.parse(raw); } catch { body = raw; } }
+			}
+			await mod.default({
+				query: Object.fromEntries(url.searchParams),
+				method: req.method,
+				headers: req.headers,
+				socket: req.socket,
+				body,
+			}, shim);
 		} catch (err) {
 			res.statusCode = 500;
 			res.end(JSON.stringify({ error: String(err) }));

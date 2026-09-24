@@ -419,10 +419,19 @@
 .room-main { min-width: 0; }
 
 /* Ordered rather than reordered in the DOM, because the narrow layout wants the
-   same thing -- card first, then the list -- and one declaration serves both.
+   same thing -- chosen first, then the list -- and one declaration serves both.
    Swapping the markup instead would invert the narrow layout and need a
-   counter-override to undo it. */
-.pin { order: -1; }
+   counter-override to undo it.
+
+   The order sits on the column, not on the card: .pin shares that column with
+   the visitors' queue now, and the two travel together. */
+.room-side {
+	order: -1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 38px;
+}
 
 /* Both columns open with a header row of the SAME height, which is the whole
    reason the two labels line up. Anything else needs an offset computed from
@@ -690,6 +699,230 @@
 	margin-left: .5em;
 	white-space: nowrap;
 }
+
+/* ── Songs visitors have left ─────────────────────────────────────────────── */
+
+/* Under the pinned card, in the column of things that were CHOSEN -- Edwin's
+   song, then other people's. The log on the right is what actually happened.
+   Keeping them apart is what lets each say what it really is. */
+
+.queue[hidden] { display: none; }
+
+.q-head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 12px;
+}
+
+.q-label {
+	margin: 0;
+	width: auto;
+	max-width: none;
+	font-size: 12px;
+	line-height: 1.4;
+	color: var(--accent);
+	letter-spacing: 0.04em;
+}
+
+.q-count { font-size: 11px; color: var(--muted); flex: none; }
+
+.q-list { list-style: none; margin: 0; padding: 0; }
+
+.q-row { border-bottom: 1px solid var(--line-soft); }
+.q-row:last-child { border-bottom: 0; }
+
+.q-btn {
+	display: grid;
+	grid-template-columns: 34px minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 10px;
+	width: 100%;
+	padding: 8px 0;
+	background: none;
+	border: 0;
+	font: inherit;
+	color: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+
+.q-art {
+	width: 34px;
+	height: 34px;
+	border-radius: 2px;
+	overflow: hidden;
+	background: var(--line-soft);
+}
+
+.q-art img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+.q-main { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+
+.q-title {
+	font-size: 14px;
+	font-weight: 300;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.q-artist {
+	font-size: 11px;
+	color: var(--muted);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* The signature. Most people will leave none, so the row has to read correctly
+   with nothing here at all -- hence a separate span rather than a reserved
+   column. */
+.q-sign { color: var(--muted-strong); }
+.q-emoji { font-size: 12px; }
+.q-initials { letter-spacing: 0.04em; }
+
+.q-when { font-size: 11px; color: var(--muted); flex: none; white-space: nowrap; }
+
+/* The payoff: Edwin actually listened to it. This is the only state change in
+   the feature, so it gets the accent and nothing else does. */
+.q-played {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 11px;
+	color: var(--accent);
+	white-space: nowrap;
+}
+
+.q-tick { font-size: 10px; }
+
+.q-row.is-playing .q-title { color: var(--accent); }
+.q-row.is-played .q-title { color: var(--muted-strong); }
+
+.q-empty { font-size: 13px; color: var(--muted); margin: 0 0 12px; width: auto; max-width: none; }
+
+.q-open {
+	margin-top: 14px;
+	font: inherit;
+	font-size: 12px;
+	color: var(--accent);
+	background: none;
+	border: 0;
+	border-bottom: 1px solid var(--line);
+	padding: 0 0 2px;
+	cursor: pointer;
+}
+
+.q-open:hover { border-bottom-color: var(--accent); }
+
+/* The visitor's mark in the log. Says who a song came from, where the queue row
+   says that Edwin played it -- the same fact from both ends. */
+.trk-from {
+	font-size: 11px;
+	color: var(--accent);
+	white-space: nowrap;
+}
+
+/* ── Leaving one ──────────────────────────────────────────────────────────── */
+
+.leave-host[hidden] { display: none; }
+
+.leave {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding: 16px;
+	border: 1px solid var(--line);
+	border-radius: 3px;
+	background: var(--ground);
+}
+
+.leave-lede { margin: 0; font-size: 13px; color: var(--muted); width: auto; max-width: none; }
+
+.leave-field { display: flex; flex-direction: column; gap: 4px; }
+.leave-field > span { font-size: 11px; color: var(--accent); letter-spacing: 0.04em; }
+.leave-field em { font-style: normal; color: var(--muted); letter-spacing: 0; }
+
+/* 16px, not 14. Safari on iOS zooms the whole page when a field smaller than
+   16px takes focus, and it does not zoom back out -- the layout is left
+   scrolled sideways with the fixed ticker cropped. text-size-adjust does not
+   prevent it; only the font-size does. */
+.leave-field input {
+	font: inherit;
+	font-size: 16px;
+	color: var(--ink);
+	background: none;
+	border: 0;
+	border-bottom: 1px solid var(--line);
+	padding: 4px 0;
+	border-radius: 0;
+}
+
+.leave-field input:focus { outline: none; border-bottom-color: var(--accent); }
+.leave-initials input { max-width: 5em; text-transform: uppercase; }
+
+.leave-emoji { border: 0; padding: 0; margin: 0; min-width: 0; }
+.leave-emoji legend { font-size: 11px; color: var(--accent); letter-spacing: 0.04em; padding: 0; }
+.leave-emoji em { font-style: normal; color: var(--muted); letter-spacing: 0; }
+
+.leave-emoji-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(34px, 1fr));
+	gap: 2px;
+	margin-top: 8px;
+}
+
+.leave-emoji-btn {
+	font-size: 16px;
+	line-height: 1;
+	background: none;
+	border: 1px solid transparent;
+	border-radius: 3px;
+	padding: 6px 0;
+	cursor: pointer;
+}
+
+.leave-emoji-btn:hover { background: var(--line-soft); }
+.leave-emoji-btn.is-chosen { border-color: var(--accent); background: var(--line-soft); }
+
+/* Same 44px floor the transport keeps on a phone. At the desktop size these
+   were 38x30, which is a miss waiting to happen on the control the feature is
+   most charming for. */
+@media (max-width: 1100px) {
+	.leave-emoji-grid { grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); }
+	.leave-emoji-btn { min-height: 44px; font-size: 20px; }
+}
+
+.leave-note { margin: 0; font-size: 12px; color: var(--muted); width: auto; max-width: none; min-height: 1.2em; }
+
+.leave-actions { display: flex; align-items: center; justify-content: flex-end; gap: 14px; }
+
+.leave-cancel {
+	font: inherit;
+	font-size: 12px;
+	color: var(--muted);
+	background: none;
+	border: 0;
+	padding: 0;
+	cursor: pointer;
+}
+
+.leave-cancel:hover { color: var(--ink); }
+
+.leave-send {
+	font: inherit;
+	font-size: 13px;
+	color: var(--ground);
+	background: var(--accent);
+	border: 0;
+	border-radius: 999px;
+	padding: 9px 18px;
+	cursor: pointer;
+}
+
+.leave-send[disabled] { opacity: .6; cursor: default; }
 
 /* ── The ticker (phones) ──────────────────────────────────────────────────── */
 
