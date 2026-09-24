@@ -17,6 +17,7 @@ import { render as renderAnchor } from './anchor.js';
 import { renderStanding } from './standing.js';
 import { playFrom } from './track.js';
 import { startMarquee } from './marquee.js';
+import { renderStrip } from './strip.js';
 import { icon } from '../icons.js';
 import { mountPlayerBar } from '../player/bar.js';
 import * as player from '../player/engine.js';
@@ -48,6 +49,7 @@ async function bootCorner(standing) {
 	const payload = await fetchLately();
 	renderStanding(standing, payload);
 	startMarquee(standing.querySelector('.marquee'));
+	startMarquee(renderStrip(payload));
 
 	const btn = document.querySelector('[data-play]');
 	if (!btn) return;

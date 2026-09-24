@@ -426,12 +426,6 @@ p {
 		margin-right: auto;
 	}
 
-	.hover,
-	.hover:hover {
-		border-bottom: 0;
-		cursor: inherit;
-	}
-
 }
 
 /* Portfolio's header row already held Back and the page name; Lounge joins it
@@ -512,7 +506,10 @@ p {
 
 @media only screen and (max-width: 768px) {
 	.footer-row { flex-direction: column; gap: 0; }
-	.corner-nav { margin-top: 30px; }
+	/* No margin of its own: .corner-nav is the last .nav-group, so its h1
+	   already takes the same 30px that separates Elsewhere from Portfolio.
+	   Adding 30 here stacked on top of that and gave the Lounge double the
+	   gap of its neighbours. */
 }
 
 /* The centre slot names the page you are on. With labels now in three
@@ -524,28 +521,28 @@ p {
 	color: var(--ink);
 }
 
-/* The photo affordance belongs to data-photo, not to the tag.
-   Three triggers are spans carrying .hover and got a dotted underline; five are
-   links -- Story, JP Morgan, Warby Parker, AForm, OKX -- and inherited the
-   plain link style, so nothing suggested a photograph sat behind them.
+/* The photo affordance belongs to data-photo, not to the tag. Three triggers
+   are spans; five are links -- Story, JP Morgan, Warby Parker, AForm, OKX --
+   and inherited the plain link style, so nothing suggested a photograph sat
+   behind them.
 
-   Scoped to the width where a photo can actually appear, so below 1350px the
-   links simply go back to being links and the spans go back to being text. */
-@media only screen and (min-width: 1351px) {
-	[data-photo]:not(img) {
-		border-bottom: 1px dotted var(--muted);
-		transition: border-color .2s ease-in-out;
-	}
+   No longer gated to desktop. It was, because the interaction was hover and a
+   phone has none -- but the right conclusion was to change the interaction, not
+   remove the feature. A tap opens the photo in a modal, so the underline means
+   the same thing at every width. */
+[data-photo]:not(img) {
+	border-bottom: 1px dotted var(--muted);
+	transition: border-color .2s ease-in-out;
+}
 
-	[data-photo]:not(img):hover {
-		border-bottom: 3px solid var(--accent);
-	}
+[data-photo]:not(img):hover {
+	border-bottom: 3px solid var(--accent);
+}
 
-	/* The word whose photograph is currently up. Edwin's name holds this by
-	   default, so the resting state of the page reads as deliberate. */
-	[data-photo].is-showing:not(img) {
-		border-bottom: 2px solid var(--accent);
-	}
+/* The word whose photograph is currently up. Edwin's name holds this by
+   default, so the resting state of the page reads as deliberate. */
+[data-photo].is-showing:not(img) {
+	border-bottom: 2px solid var(--accent);
 }
 
 /* The Lounge has no bottom-right corner -- its second room is reached from the

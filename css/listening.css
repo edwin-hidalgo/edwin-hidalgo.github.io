@@ -657,3 +657,101 @@
 	   desktop figure left the footer links tucked underneath it. */
 	.content { padding-bottom: 165px; }
 }
+
+/* The note is the one sentence on the page in Edwin's own voice; signing it is
+   what makes that legible rather than assumed. */
+.pin-cite {
+	display: block;
+	font-size: 12px;
+	font-style: normal;
+	color: var(--muted);
+	margin-top: 8px;
+}
+
+/* ── The top strip (phones) ───────────────────────────────────────────────── */
+
+/* One live line above everything, because on a narrow screen the Lounge is
+   several screenfuls down and nothing above the fold hints the site has a room
+   in it. Deliberately not a nav bar: it earns the position by being the only
+   thing on the page that changes. */
+[data-strip] { display: none; }
+[data-strip][hidden] { display: none; }
+
+@media only screen and (max-width: 1100px) {
+	[data-strip]:not([hidden]) { display: block; }
+}
+
+.strip {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 10px 0 12px;
+	margin-bottom: 8px;
+	border-bottom: 1px solid var(--line);
+	border-color: var(--line);
+	font-size: 12px;
+	min-width: 0;
+}
+
+.strip:hover { border-bottom: 1px solid var(--accent); }
+
+.strip-lede { flex: none; display: inline-flex; align-items: center; }
+.strip-now { color: var(--accent); }
+.strip-track { min-width: 0; flex: 1 1 auto; color: var(--muted); }
+.strip-go { flex: none; color: var(--accent); display: flex; }
+
+/* ── The photo modal (touch) ──────────────────────────────────────────────── */
+
+.photo-modal {
+	position: fixed;
+	inset: 0;
+	z-index: 60;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 24px;
+	background: color-mix(in srgb, var(--ink) 76%, transparent);
+	backdrop-filter: blur(3px);
+	cursor: zoom-out;
+}
+
+.photo-modal-inner {
+	margin: 0;
+	max-width: 100%;
+	max-height: 100%;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.photo-modal img {
+	display: block;
+	max-width: 100%;
+	max-height: calc(100vh - 120px);
+	object-fit: contain;
+	border-radius: 2px;
+}
+
+.photo-modal figcaption {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 16px;
+	color: var(--ground);
+	font-size: 13px;
+}
+
+.photo-modal figcaption a {
+	color: var(--ground);
+	border-bottom: 1px solid color-mix(in srgb, var(--ground) 50%, transparent);
+	cursor: pointer;
+}
+
+/* Stops the page scrolling behind the photograph. */
+body.has-modal { overflow: hidden; }
+
+@media (prefers-reduced-motion: no-preference) {
+	.photo-modal { animation: eh-fade .16s ease-out; }
+}
+
+@keyframes eh-fade { from { opacity: 0 } to { opacity: 1 } }

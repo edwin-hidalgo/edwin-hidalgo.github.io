@@ -18,6 +18,11 @@
 // reload, so the bindings have to be re-made against the new DOM.
 
 export function initHover() {
+	// Desktop only. Below this width the photo cannot be shown inline at all,
+	// and js/photo-modal.js takes over with a tap. Running anyway marked a word
+	// as "currently showing" when nothing was.
+	if (!window.matchMedia('(min-width: 1351px)').matches) return;
+
 	const photos = {};
 	let fallback = null;
 

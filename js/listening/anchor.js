@@ -38,7 +38,7 @@ export async function render(el) {
 
 	el.hidden = false;
 	el.innerHTML = `<p class="pin-label">Pinned</p>
-		${a.note ? `<blockquote class="pin-note">${esc(a.note)}</blockquote>` : ''}
+		${a.note ? `<blockquote class="pin-note">${esc(a.note)}<cite class="pin-cite">&mdash; Edwin</cite></blockquote>` : ''}
 		<button class="pin-track" type="button" data-key="${esc(key)}">
 			<span class="pin-art"></span>
 			<span class="pin-meta">

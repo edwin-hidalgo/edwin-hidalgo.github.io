@@ -12,7 +12,9 @@
 	<link href="https://fonts.googleapis.com/css?family=Karla" rel="stylesheet">
 	<link href="https://fonts.googleapis.com/css?family=Poppins&display=swap" rel="stylesheet">
 	<!-- Favicon –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-	<link rel="icon" type="image/png" href="img/favicon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png">
+	<link rel="icon" type="image/png" sizes="256x256" href="img/favicon.png">
+	<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
 	<script type="module" src="js/site.js"></script>
 </head>
 
@@ -21,6 +23,11 @@
 		<div id="particles-js">
 			<div class="content">
 
+
+				<!-- Phones only: one live line at the top, because the Lounge is
+				     otherwise several screenfuls down. Filled by js/listening/strip.js
+				     and hidden unless there is something true to say. -->
+				<div data-strip hidden></div>
 
 				<!-- The bio and the photographs are one block: the photo is sized and
 				     positioned against this, not against the viewport. -->
@@ -64,7 +71,7 @@
 					     scrolls, so the corner is never quite still. -->
 					<div class="nav-group corner-nav">
 						<h1>Lounge</h1>
-						<p class="corner-line"><span class="corner-now standing-listening" hidden><span class="marquee"><span class="marquee-inner" data-standing></span></span></span><button class="corner-play" type="button" data-play><span class="corner-icon" aria-hidden="true">&#9654;</span><span class="corner-label">Play</span></button><span class="corner-sep" aria-hidden="true">&middot;</span><a href="lounge.html">Enter</a></p>
+						<p class="corner-line"><span class="corner-now standing-listening" hidden><span class="marquee"><span class="marquee-inner" data-standing></span></span></span><button class="corner-play" type="button" data-play><span class="corner-icon" aria-hidden="true"></span><span class="corner-label">Play</span></button><span class="corner-sep" aria-hidden="true">&middot;</span><a href="lounge.html">Enter</a></p>
 					</div>
 				</div>
 			</div>
