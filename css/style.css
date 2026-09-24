@@ -1,15 +1,34 @@
+/* Palette. Every colour on the site resolves through these, so a colourway is
+   a single block swap rather than a find-and-replace. Set on :root so a
+   [data-colourway] attribute on <html> can override any of them.
+
+   --accent must stay at 4.5:1 or better against --ground: it carries the 12px
+   section labels, which are the smallest text on the page. The previous coral
+   (#e05a47) measured 3.52 and did not pass. */
+:root {
+	--ground: #fafafa;
+	--ink: #282828;
+	--accent: #2C5A6B;      /* deep petrol -- 7.23:1, passes AAA */
+	--wash: #93A9AE;        /* fog -- surfaces and the particle field only */
+	--muted: #888;
+	--muted-strong: #555;
+	--line: #e8e8e8;
+	--line-strong: #d0d0d0;
+	--line-soft: #f0f0f0;
+}
+
 ::selection {
-    background: #282828;
+    background: var(--ink);
     color: #fff
 }
 
 ::-moz-selection {
-    background: #282828;
+    background: var(--ink);
     color: #fff
 }
 
 element.style {
-    background-color: #fafafa;
+    background-color: var(--ground);
 }
 
 body {
@@ -18,8 +37,8 @@ body {
     -webkit-font-smoothing: antialiased;
     margin: 0;
     letter-spacing: -0.3;
-    color: #282828;
-    background-color: #fafafa;
+    color: var(--ink);
+    background-color: var(--ground);
 }
 
 a {
@@ -41,7 +60,7 @@ a {
 
 a:hover,
 .hover:hover {
-    border-color: #e05a47;
+    border-color: var(--accent);
     border-style: solid;
     border-width: 0 0 3px
 }
@@ -62,7 +81,7 @@ h1 {
     margin-top: 50px;
     max-width: 600px;
     width: 80%;
-    color: #e05a47
+    color: var(--accent)
 }
 
 h2 {
@@ -110,7 +129,7 @@ p {
     z-index: 0;
     width: 100%;
     min-height: 100%;
-    background-color: #fafafa
+    background-color: var(--ground)
 }
 
 #particles-js canvas {
@@ -169,14 +188,14 @@ p {
     display: flex;
     gap: 24px;
     margin-top: 20px;
-    border-bottom: 1px solid #e8e8e8;
+    border-bottom: 1px solid var(--line);
     padding-bottom: 0
 }
 
 .tab {
     font-size: 12px;
     font-weight: 400;
-    color: #888;
+    color: var(--muted);
     cursor: pointer;
     padding-bottom: 12px;
     border-bottom: 2px solid transparent;
@@ -184,12 +203,12 @@ p {
 }
 
 .tab:hover {
-    color: #282828
+    color: var(--ink)
 }
 
 .tab.active {
-    color: #e05a47;
-    border-bottom-color: #e05a47
+    color: var(--accent);
+    border-bottom-color: var(--accent)
 }
 
 .tab-content {
@@ -203,7 +222,7 @@ p {
 .entry {
     margin-top: 48px;
     padding-bottom: 48px;
-    border-bottom: 2px solid #d0d0d0
+    border-bottom: 2px solid var(--line-strong)
 }
 
 .entry:last-child {
@@ -234,7 +253,7 @@ p {
 .entry-date {
     font-size: 12px;
     font-weight: 400;
-    color: #888;
+    color: var(--muted);
     white-space: nowrap;
     margin-left: 20px
 }
@@ -242,7 +261,7 @@ p {
 .entry-role {
     margin-top: 2px;
     max-width: calc(100% - 480px);
-    color: #888;
+    color: var(--muted);
     font-style: italic
 }
 
@@ -255,7 +274,7 @@ p {
     margin-top: 28px;
     padding-top: 20px;
     padding-left: 24px;
-    border-top: 1px solid #e8e8e8
+    border-top: 1px solid var(--line)
 }
 
 .sub-project-text {
@@ -263,7 +282,7 @@ p {
 }
 
 .sub-project-text p {
-    color: #555
+    color: var(--muted-strong)
 }
 
 .sub-project-header {
@@ -344,4 +363,140 @@ p {
         font-weight: 800;
         float: left
     }
+}
+
+/* ── Below 1300px: the photo cannot appear, so the layout changes shape ──── */
+
+/* style.css already hides .img outright under 1300px -- it is positioned over
+   the right half and would land on the text. Two things follow from that.
+   
+   First, the column centres. Above 1300px it hugs the left because the right
+   half belongs to the photograph; with no photograph, the asymmetry is just a
+   gap, so even margins make it look intended rather than abandoned. The text
+   itself stays left-aligned.
+   
+   Second, the hover affordance goes. Leaving a dotted underline on a word that
+   can no longer reveal anything is a promise the page cannot keep. */
+@media only screen and (max-width: 1300px) {
+	.content > h1,
+	.content > h2,
+	.content > p,
+	.nav-bottom,
+	.listening,
+	.listening-head,
+	[data-listening] {
+		margin-left: auto;
+		margin-right: auto;
+	}
+
+	.hover,
+	.hover:hover {
+		border-bottom: 0;
+		cursor: inherit;
+	}
+
+}
+
+/* Portfolio's header row already held Back and the page name; Lounge joins it
+   on the right so the third room is reachable from all three pages. */
+.nav-row-end {
+	color: var(--accent);
+}
+
+/* ── Footer row: Elsewhere and Portfolio, then Lounge in the far corner ──── */
+
+/* Elsewhere and Portfolio keep their own 600px column, aligned with the text
+   above them. Lounge sits out at the right edge of the content area -- under
+   where the hover photograph appears, in the corner the layout otherwise
+   leaves empty. */
+.footer-row {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 40px;
+	width: 100%;
+	/* The gap the bottom row always had; it moves up to the wrapper so all
+	   three groups share one baseline instead of each paying for its own. */
+	margin-top: 50px;
+}
+
+.footer-row .nav-bottom {
+	flex: 0 1 600px;
+	margin-top: 0;
+}
+
+.corner-nav {
+	flex: none;
+	text-align: right;
+	margin-top: 0;
+	max-width: 260px;
+}
+
+.corner-nav h1 { margin-top: 0; width: auto; max-width: none; }
+
+/* The live line. Muted, because it is a detail under the link rather than a
+   headline -- and it may be absent entirely, which must not leave a hole. */
+.corner-now {
+	font-size: 12px;
+	color: var(--muted);
+	margin: 0;
+	line-height: 1.5;
+}
+
+.corner-now[hidden] { display: none; }
+
+/* Below 1300px the layout is symmetrical and the corner has no corner to sit
+   in, so Lounge folds back into the row as a third ordinary group. */
+@media only screen and (max-width: 1300px) {
+	.footer-row {
+		max-width: 600px;
+		margin-left: auto;
+		margin-right: auto;
+		gap: 24px;
+	}
+
+	.footer-row .nav-bottom { flex: 1 1 auto; }
+
+	.corner-nav {
+		text-align: left;
+		max-width: none;
+	}
+}
+
+@media only screen and (max-width: 768px) {
+	.footer-row { flex-direction: column; gap: 0; }
+	.corner-nav { margin-top: 30px; }
+}
+
+/* The centre slot names the page you are on. With labels now in three
+   positions, without this all three read as equal options and none of them
+   tells you where you are. */
+.nav-row-here {
+	font-size: 15px;
+	font-weight: 500;
+	color: var(--ink);
+}
+
+/* The photo affordance belongs to data-photo, not to the tag.
+   Three triggers are spans carrying .hover and got a dotted underline; five are
+   links -- Story, JP Morgan, Warby Parker, AForm, OKX -- and inherited the
+   plain link style, so nothing suggested a photograph sat behind them.
+
+   Scoped to the width where a photo can actually appear, so below 1300px the
+   links simply go back to being links and the spans go back to being text. */
+@media only screen and (min-width: 1301px) {
+	[data-photo]:not(img) {
+		border-bottom: 1px dotted var(--muted);
+		transition: border-color .2s ease-in-out;
+	}
+
+	[data-photo]:not(img):hover {
+		border-bottom: 3px solid var(--accent);
+	}
+
+	/* The word whose photograph is currently up. Edwin's name holds this by
+	   default, so the resting state of the page reads as deliberate. */
+	[data-photo].is-showing:not(img) {
+		border-bottom: 2px solid var(--accent);
+	}
 }

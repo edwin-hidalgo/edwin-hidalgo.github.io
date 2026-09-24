@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<title>Lounge &mdash; Edwin Hidalgo</title>
+	<meta name="description" content="What Edwin has been listening to.">
+	<meta name="author" content="Edwin Hidalgo">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="css/style.css">
+	<link rel="stylesheet" href="css/listening.css">
+	<link href="https://fonts.googleapis.com/css?family=Karla" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Poppins&display=swap" rel="stylesheet">
+	<!-- Favicon –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+	<link rel="icon" type="image/png" href="img/favicon.png">
+	<script type="module" src="js/site.js"></script>
+</head>
+
+<body>
+	<div class="wrapper">
+		<div id="particles-js">
+			<div class="content">
+
+				<h1 class="nav-row"><span><a href="index.html">&larr; Back</a></span><span class="nav-row-here">Lounge</span><span class="nav-row-end"><a href="portfolio.html">Portfolio</a></span></h1>
+
+				<!-- Filled in by js/listening. Empty without JS, by design. -->
+				<section data-listening></section>
+				<noscript>
+					<h1>Lately</h1>
+					<h2>This room needs JavaScript to hear anything. The
+					<a href="index.html">about</a> and <a href="portfolio.html">portfolio</a>
+					pages do not.</h2>
+				</noscript>
+
+				<div class="footer-row">
+					<div class="nav-bottom">
+						<div class="nav-group">
+							<h1>Elsewhere</h1>
+							<p><a href="mailto:edwinhidalgo45@gmail.com">Email · </a><a href="https://www.linkedin.com/in/edwinhidalgo/" target="_blank">LinkedIn · </a><a href="https://x.com/pescatios" target="_blank">Twitter</a></p>
+						</div>
+						<div class="nav-group">
+							<h1>Portfolio</h1>
+							<p><a href="portfolio.html">Career &middot; </a><a href="portfolio.html#advisory">Advisory &middot; </a><a href="portfolio.html#projects">Projects</a></p>
+						</div>
+				
+					</div>
+
+				</div>
+			</div>
+			<canvas class="particles-js-canvas-el" width="1670" height="1434" style="width: 100%; height: 100%;">
+			</canvas>
+		</div>
+	</div>
+
+	<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+	<script>
+	  window.onload = function () {
+	    particlesJS("particles-js", {
+	      particles: {
+	        number: {
+	          value: 100,
+	          density: {
+	            enable: false,
+	            value_area: 4498.141557303954
+	          }
+	        },
+	        color: { value: "#b0b8bc" },
+	        shape: {
+	          type: "circle",
+	          stroke: { width: 0, color: "#b0b8bc" },
+	          polygon: { nb_sides: 6 },
+	          image: { src: "img/github.svg", width: 100, height: 100 }
+	        },
+	        opacity: { value: 0.7 },
+	        size: { value: 3, random: true },
+	        line_linked: {
+	          enable: false,
+	          distance: 150,
+	          color: "#e0e0e0",
+	          opacity: 0.6,
+	          width: 1
+	        },
+	        move: { enable: true, speed: 4 }
+	      },
+	      interactivity: {
+	        detect_on: "canvas",
+	        events: {
+	          onhover: { enable: true, mode: "repulse" },
+	          onclick: { enable: true, mode: "push" },
+	          resize: true
+	        },
+	        modes: {
+	          repulse: { distance: 200, duration: 0.4 },
+	          push: { particles_nb: 4 },
+	          remove: { particles_nb: 2 }
+	        }
+	      },
+	      retina_detect: true
+	    });
+	  };
+	</script>
+
+
+</body>
+
+</html>

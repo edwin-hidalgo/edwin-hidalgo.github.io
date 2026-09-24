@@ -1,0 +1,502 @@
+/* The listening section. Borrows the page's existing vocabulary rather than
+   introducing a second one: h1 is the small coral label, h2 is 21px/weight 100,
+   the column is 600px capped at 80%. No cards, no shadows, no new typeface. */
+
+.listening {
+	max-width: 600px;
+	width: 80%;
+}
+/* The label row carries the quiet toggle on its right. h1 already supplies the
+   coral and the 12px, so this only handles placement. */
+.listening-head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 16px;
+	max-width: 600px;
+	width: 80%;
+	margin-top: 50px;
+}
+
+.listening-head h1 {
+	margin-top: 0;
+	width: auto;
+}
+
+.quiet-toggle {
+	font-family: inherit;
+	font-size: 12px;
+	font-weight: 400;
+	color: var(--muted);
+	background: none;
+	border: 0;
+	border-bottom: 3px solid transparent;
+	padding: 0;
+	cursor: pointer;
+	transition: color .2s ease-in-out, border-color .2s ease-in-out;
+}
+
+.quiet-toggle:hover {
+	color: var(--ink);
+	border-bottom-color: var(--accent);
+}
+
+/* The anchor: one track Edwin chose, and why. This is the authored half of the
+   section, so it gets the room the recent list does not. */
+.anchor {
+	margin-bottom: 34px;
+}
+
+.anchor-note {
+	font-size: 21px;
+	font-weight: 100;
+	line-height: 1.5;
+	margin: 0 0 10px;
+}
+
+/* now playing / last played */
+.now {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	padding-bottom: 18px;
+	border-bottom: 1px solid var(--line);
+}
+
+.now-art,
+.row-art {
+	flex: none;
+	background: #efefef;
+	border-radius: 2px;
+	object-fit: cover;
+}
+
+.now-art { width: 56px; height: 56px; }
+.row-art { width: 34px; height: 34px; }
+
+.now-body { min-width: 0; }
+
+.now-title {
+	font-size: 21px;
+	font-weight: 100;
+	line-height: 1.35;
+	margin: 0;
+}
+
+.meta {
+	font-size: 12px;
+	font-weight: 400;
+	color: var(--muted);
+	margin: 3px 0 0;
+}
+
+/* The live dot only appears when the claim is actually true — see js/listening
+   /lately.js, which requires both the nowplaying flag and a fresh response. */
+.live-dot {
+	display: inline-block;
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: var(--accent);
+	margin-right: 6px;
+	vertical-align: middle;
+}
+
+.recent { list-style: none; margin: 0; padding: 0; }
+
+.row {
+	border-bottom: 1px solid var(--line-soft);
+}
+
+.row-open {
+	width: 100%;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 11px 0;
+	background: none;
+	border: 0;
+	font: inherit;
+	color: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+
+.row-open:hover .row-title { color: var(--accent); }
+
+.row-body { min-width: 0; flex: 1; }
+
+.row-title {
+	/* display:block is what makes the ellipsis work at all -- overflow has no
+	   effect on an inline box, so without it a long title pushes the timestamp
+	   off the right edge and the page scrolls sideways on a phone. */
+	display: block;
+	font-size: 15px;
+	font-weight: 300;
+	line-height: 1.3;
+	transition: color .2s ease-in-out;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.row-when {
+	font-size: 12px;
+	color: var(--muted);
+	flex: none;
+	white-space: nowrap;
+}
+
+
+
+.links { font-size: 12px; color: var(--muted); }
+.links a { border-bottom: 1px solid var(--line); }
+.links a:hover { border-bottom: 3px solid var(--accent); }
+.links span[aria-hidden] { padding: 0 6px; }
+
+.listening-empty {
+	font-size: 15px;
+	font-weight: 300;
+	color: var(--muted);
+	margin: 0;
+}
+
+/* A guest song leads with the sentence; the track is behind the tap. */
+.guest { margin-top: 16px; }
+.guest .listening-head { margin-top: 50px; }
+
+.guest-lede {
+	font-size: 21px;
+	font-weight: 100;
+	line-height: 1.5;
+	margin: 0 0 8px;
+}
+
+.guest-soon { font-size: 12px; color: var(--muted); margin: 10px 0 0; }
+
+@media (max-width: 768px) {
+	.listening,
+	.listening-head { width: 100%; }
+	.row-detail { padding-left: 0; }
+}
+
+/* ── The player bar ───────────────────────────────────────────────────────── */
+
+/* Mounted once on every page and only visible while something is playing. An
+   empty transport sitting under a page about payments infrastructure would be
+   furniture, so it hides itself rather than idling. */
+.player {
+	position: fixed;
+	inset: auto 0 0 0;
+	z-index: 40;
+	background: color-mix(in srgb, var(--ground) 94%, transparent);
+	backdrop-filter: blur(10px);
+	border-top: 1px solid var(--line);
+}
+
+.player[hidden] { display: none; }
+
+.player-inner {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	max-width: 900px;
+	margin: 0 auto;
+	padding: 8px 16px;
+}
+
+.player-art {
+	width: 40px;
+	height: 40px;
+	flex: none;
+	border-radius: 2px;
+	object-fit: cover;
+	background: var(--line-soft);
+}
+
+.player-body { min-width: 0; flex: 1 1 160px; }
+
+.player-title {
+	font-size: 13px;
+	font-weight: 300;
+	margin: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.player-meta { font-size: 11px; color: var(--muted); margin: 2px 0 0; }
+
+.player-transport { display: flex; align-items: center; gap: 8px; flex: none; }
+
+.player-btn {
+	font: inherit;
+	font-size: 11px;
+	color: var(--muted);
+	background: none;
+	border: 0;
+	padding: 4px;
+	cursor: pointer;
+	line-height: 1;
+}
+
+.player-btn:hover { color: var(--ink); }
+
+.player-play {
+	width: 30px;
+	height: 30px;
+	flex: none;
+	border: 0;
+	border-radius: 50%;
+	background: var(--accent);
+	color: var(--ground);
+	font-size: 11px;
+	line-height: 1;
+	cursor: pointer;
+	transition: transform .15s ease-in-out;
+}
+
+.player-play:hover { transform: scale(1.06); }
+
+/* A div rather than <input type=range>: pointer capture means a drag that
+   leaves the bar still seeks, and the fill needs no vendor pseudo-elements. */
+.player-seek {
+	flex: 1 1 140px;
+	min-width: 80px;
+	padding: 8px 0;
+	cursor: pointer;
+	touch-action: none;
+}
+
+.player-track {
+	height: 3px;
+	border-radius: 999px;
+	background: color-mix(in srgb, var(--ink) 12%, transparent);
+	overflow: hidden;
+}
+
+.player-fill {
+	height: 100%;
+	width: 0;
+	background: var(--accent);
+}
+
+.player-time {
+	font-size: 11px;
+	color: var(--muted);
+	font-variant-numeric: tabular-nums;
+	flex: none;
+}
+
+
+
+@media (max-width: 768px) {
+	.player-time,
+	.player-art { display: none; }
+	.player-inner { gap: 8px; padding: 8px 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.player-play { transition: none; }
+	.player-play:hover { transform: none; }
+}
+
+/* Room for the bar. Only while it is up, so a page with nothing playing keeps
+   its original spacing exactly. */
+/* Reserve room for the bar so the footer is reachable while it is up. The
+   bar is fixed and overlays the page, so this is scroll room rather than a
+   push -- the last row of links sits under it until you scroll. */
+body.has-player .content {
+	padding-bottom: 120px;
+}
+
+@media (max-width: 768px) {
+	body.has-player .content { padding-bottom: 130px; }
+}
+
+/* ── Playing state, shared by every row ───────────────────────────────────── */
+
+/* Exactly one row can be current, because only one URL is ever playing and it
+   maps to one owner. The glyph is set in JS; this just gives it room. */
+.row-state {
+	flex: none;
+	width: 16px;
+	font-size: 10px;
+	color: var(--accent);
+	text-align: right;
+	line-height: 1;
+}
+
+.is-playing .row-title,
+.is-playing .now-title { color: var(--accent); }
+
+/* ── The hero track is a button too ───────────────────────────────────────── */
+
+/* It used to be a div, which meant the most prominent track on the page was
+   the one you could not play. */
+button.now {
+	width: 100%;
+	background: none;
+	border: 0;
+	border-bottom: 1px solid var(--line);
+	font: inherit;
+	color: inherit;
+	text-align: left;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	padding: 0 0 18px;
+}
+
+button.now:hover .now-title { color: var(--accent); }
+.now-body { min-width: 0; flex: 1; display: block; }
+.now-title { display: block; }
+.now .meta { display: block; }
+
+/* ── The window the list scrolls inside ───────────────────────────────────── */
+
+/* A hundred tracks without burying the rest of the page. The list scrolls
+   within a fixed height rather than growing the document, so the footer stays
+   where it is however deep the history goes. */
+.recent-window {
+	max-height: 28rem;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	-webkit-overflow-scrolling: touch;
+}
+
+.recent-count {
+	font-size: 12px;
+	color: var(--muted);
+	margin: 10px 0 0;
+}
+
+/* ── The obvious control ──────────────────────────────────────────────────── */
+
+.play-all {
+	display: inline-flex;
+	align-items: center;
+	gap: 9px;
+	font: inherit;
+	font-size: 13px;
+	color: var(--ground);
+	background: var(--accent);
+	border: 0;
+	border-radius: 999px;
+	padding: 9px 20px;
+	margin-bottom: 26px;
+	cursor: pointer;
+	transition: transform .15s ease-in-out;
+}
+
+.play-all:hover { transform: scale(1.03); }
+.play-all[hidden] { display: none; }
+.play-all-icon { font-size: 10px; line-height: 1; }
+
+/* ── The corner on the About page ─────────────────────────────────────────── */
+
+.corner-play {
+	font: inherit;
+	color: inherit;
+	background: none;
+	border: 0;
+	border-bottom: 3px solid transparent;
+	padding: 0;
+	cursor: pointer;
+	display: inline-flex;
+	align-items: baseline;
+	gap: 6px;
+}
+
+.corner-play:hover { border-bottom-color: var(--accent); }
+.corner-icon { font-size: 9px; color: var(--accent); }
+
+/* ── Marquee ──────────────────────────────────────────────────────────────── */
+
+/* Park, drift to reveal the tail, park again, return. Ported from Onus; a
+   continuous loop is harder to read and never shows you the beginning. The
+   distance is measured in JS and arrives as --marquee-shift. */
+.marquee {
+	display: block;
+	overflow: hidden;
+	position: relative;
+	max-width: 100%;
+}
+
+.marquee-inner {
+	display: inline-block;
+	white-space: nowrap;
+	will-change: transform;
+}
+
+.marquee.is-drifting .marquee-inner {
+	animation-name: eh-marquee;
+	animation-timing-function: ease-in-out;
+	animation-iteration-count: infinite;
+}
+
+@keyframes eh-marquee {
+	0%, 18%   { transform: translateX(0); }
+	47%, 65%  { transform: translateX(var(--marquee-shift, 0)); }
+	94%, 100% { transform: translateX(0); }
+}
+
+/* ── The player bar ───────────────────────────────────────────────────────── */
+
+.player-links { font-size: 11px; flex: none; }
+.player-links .links { margin: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+	.marquee.is-drifting .marquee-inner { animation: none; }
+	.play-all { transition: none; }
+	.play-all:hover { transform: none; }
+}
+
+/* Narrow: the transport drops to its own row rather than fighting the title
+   for width, and every control keeps a 44px touch target. */
+@media (max-width: 640px) {
+	.player-inner {
+		display: grid;
+		grid-template-columns: auto 1fr auto;
+		grid-template-areas:
+			"art  title close"
+			"seek seek  seek"
+			"tx   tx    tx";
+		gap: 6px 10px;
+		padding: 8px 12px 10px;
+	}
+
+	.player-art { grid-area: art; display: block; width: 34px; height: 34px; }
+	.player-body { grid-area: title; }
+	.player-close { grid-area: close; }
+	.player-seek { grid-area: seek; width: 100%; }
+	.player-transport { grid-area: tx; justify-content: center; gap: 22px; }
+	.player-links { display: none; }
+	.player-time { display: none; }
+
+	.player-btn { min-width: 44px; min-height: 44px; font-size: 13px; }
+	.player-play { width: 44px; height: 44px; font-size: 13px; }
+
+	.recent-window { max-height: 20rem; }
+}
+
+/* The links were wrapping to a second line and making the bar half again as
+   tall, which is how it ended up covering the footer. One line, truncated, and
+   only where there is genuinely room for them. */
+.player-links {
+	max-width: 260px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.player-links .links {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+@media (max-width: 1200px) {
+	.player-links { display: none; }
+}
