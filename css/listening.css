@@ -2,9 +2,17 @@
    introducing a second one: h1 is the small coral label, h2 is 21px/weight 100,
    the column is 600px capped at 80%. No cards, no shadows, no new typeface. */
 
-.listening {
+/* The room is a centred column at every width. The About page hugs the left
+   because the right half belongs to the photograph; nothing ever fills that
+   space here, so a left-hugging column under a full-width header just looked
+   unbalanced. width:100% rather than 80% so it agrees with the footer instead
+   of landing 24px narrower. */
+.listening,
+[data-listening] {
 	max-width: 600px;
-	width: 80%;
+	width: 100%;
+	margin-left: auto;
+	margin-right: auto;
 }
 /* The label row carries the quiet toggle on its right. h1 already supplies the
    coral and the 12px, so this only handles placement. */
@@ -14,7 +22,9 @@
 	justify-content: space-between;
 	gap: 16px;
 	max-width: 600px;
-	width: 80%;
+	width: 100%;
+	margin-left: auto;
+	margin-right: auto;
 	margin-top: 50px;
 }
 

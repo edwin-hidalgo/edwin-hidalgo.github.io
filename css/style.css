@@ -170,10 +170,17 @@ p {
     pointer-events: none
 }
 
+/* The page header row spans the content, always. It is an h1, so without this
+   it inherits the text column's width:80%/max-width:600px and gets crammed into
+   the left 600px -- which is what happened on the Lounge, where there is no
+   .page-portfolio override to escape it. The three slots then have nowhere to
+   spread to and the centre label stops reading as centred. */
 .nav-row {
     display: flex;
     justify-content: space-between;
-    align-items: baseline
+    align-items: baseline;
+    width: auto;
+    max-width: none
 }
 
 .nav-bottom {
@@ -451,7 +458,11 @@ p {
 }
 
 .footer-row .nav-bottom {
+	/* width:100%, not the inherited 80%: at 390px that made the footer links
+	   320px inside a 400px column, inset from everything above them. */
 	flex: 0 1 600px;
+	width: 100%;
+	max-width: 600px;
 	margin-top: 0;
 }
 
@@ -535,4 +546,14 @@ p {
 	[data-photo].is-showing:not(img) {
 		border-bottom: 2px solid var(--accent);
 	}
+}
+
+/* The Lounge has no bottom-right corner -- its second room is reached from the
+   header row instead -- so spreading the footer edge to edge left a single
+   600px block stranded at the left of a 1210px row. Centred, it lines up with
+   the listening column above it. Same convention as .page-portfolio. */
+.page-lounge .footer-row {
+	max-width: 600px;
+	margin-left: auto;
+	margin-right: auto;
 }
