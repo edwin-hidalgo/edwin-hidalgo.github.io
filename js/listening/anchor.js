@@ -37,8 +37,8 @@ export async function render(el) {
 	const key = rowKey(a, 0, 'pin');
 
 	el.hidden = false;
-	el.innerHTML = `<p class="pin-label">Pinned</p>
-		${a.note ? `<blockquote class="pin-note">${esc(a.note)}<cite class="pin-cite">&mdash; Edwin</cite></blockquote>` : ''}
+	el.innerHTML = `<div class="pin-head"><p class="pin-label">${LABEL}</p></div>
+		${a.note ? `<blockquote class="pin-note"><span class="pin-quote">${esc(a.note)}</span><span class="pin-cite">&mdash; Edwin</span></blockquote>` : ''}
 		<button class="pin-track" type="button" data-key="${esc(key)}">
 			<span class="pin-art"></span>
 			<span class="pin-meta">

@@ -29,6 +29,22 @@ export function timeAgo(ms) {
 	return new Date(ms).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
+// The same honesty, abbreviated. A ticker has no room for "44 minutes ago"
+// eight times over, and the long form is what makes the belt scroll for a
+// minute before it comes back round.
+export function timeAgoShort(ms) {
+	if (!ms) return '';
+	const mins = Math.round((Date.now() - ms) / 60_000);
+	if (mins < 1) return 'now';
+	if (mins < 60) return `${mins}m`;
+	const hours = Math.round(mins / 60);
+	if (hours < 24) return `${hours}h`;
+	const days = Math.round(hours / 24);
+	if (days === 1) return 'yesterday';
+	if (days < 7) return `${days}d`;
+	return new Date(ms).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
 // Titles arrive from Last.fm, which takes them from whatever client scrobbled
 // them. Treat every one as untrusted text.
 export function esc(value) {

@@ -17,7 +17,7 @@ import { render as renderAnchor } from './anchor.js';
 import { renderStanding } from './standing.js';
 import { playFrom } from './track.js';
 import { startMarquee } from './marquee.js';
-import { renderStrip } from './strip.js';
+import { renderTicker, startTicker } from './ticker.js';
 import { icon } from '../icons.js';
 import { mountPlayerBar } from '../player/bar.js';
 import * as player from '../player/engine.js';
@@ -45,11 +45,9 @@ function syncPlayLabel(btn, iconSel, textSel, size) {
 // The corner on the About page. Play starts the track the corner NAMES -- it
 // used to open with the pinned song while the label beside it showed the most
 // recent listen, so pressing play started something other than what it said.
-async function bootCorner(standing) {
-	const payload = await fetchLately();
+function bootCorner(standing, payload) {
 	renderStanding(standing, payload);
 	startMarquee(standing.querySelector('.marquee'));
-	startMarquee(renderStrip(payload));
 
 	const btn = document.querySelector('[data-play]');
 	if (!btn) return;
@@ -71,8 +69,17 @@ async function bootCorner(standing) {
 export async function boot() {
 	const root = document.querySelector('[data-listening]');
 	const standing = document.querySelector('.standing-listening');
-	if (!root && !standing) return;
-	if (!root) return bootCorner(standing);
+	const ticker = document.querySelector('[data-ticker]');
+	if (!root && !standing && !ticker) return;
+
+	// Portfolio has neither the room nor the corner, only the ticker, and the
+	// early return used to send it away empty-handed.
+	if (!root) {
+		const payload = await fetchLately();
+		startTicker(renderTicker(payload));
+		if (standing) bootCorner(standing, payload);
+		return;
+	}
 
 	root.innerHTML = `<div class="room">
 			<div class="room-main">
@@ -100,5 +107,8 @@ export async function boot() {
 	renderAnchor(root.querySelector('.pin'));
 	payload = await fetchLately();
 	renderLately(latelyEl, payload);
+	// Called on the Lounge too, where it hides itself: the host lives at <body>
+	// level and therefore survives the soft navigation that brought us here.
+	startTicker(renderTicker(payload));
 	mountPlayerBar();
 }

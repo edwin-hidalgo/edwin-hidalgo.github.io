@@ -19,6 +19,13 @@
 </head>
 
 <body class="page-lounge">
+
+	<!-- Phones only: the live ticker, pinned to the top of the viewport. It sits
+	     at <body> level rather than inside .content because it is chrome, not
+	     content -- js/nav.js swaps .content on every soft navigation, which
+	     would destroy it. Filled by js/listening/ticker.js, and hidden unless
+	     there is something true to say. -->
+	<div data-ticker hidden></div>
 	<div class="wrapper">
 		<div id="particles-js">
 			<div class="content">

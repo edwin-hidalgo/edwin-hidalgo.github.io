@@ -17,14 +17,6 @@
 	margin-left: auto;
 	margin-right: auto;
 }
-/* The label row carries the quiet toggle on its right. h1 already supplies the
-   coral and the 12px, so this only handles placement. */
-
-.listening-head h1 {
-	margin-top: 0;
-	width: auto;
-}
-
 
 
 /* The anchor: one track Edwin chose, and why. This is the authored half of the
@@ -254,28 +246,6 @@
 
 
 
-/* ── The obvious control ──────────────────────────────────────────────────── */
-
-.play-all {
-	display: inline-flex;
-	align-items: center;
-	gap: 9px;
-	font: inherit;
-	font-size: 13px;
-	color: var(--ground);
-	background: var(--accent);
-	border: 0;
-	border-radius: 999px;
-	padding: 9px 20px;
-	margin-bottom: 26px;
-	cursor: pointer;
-	transition: transform .15s ease-in-out;
-}
-
-.play-all:hover { transform: scale(1.03); }
-.play-all[hidden] { display: none; }
-.play-all-icon { font-size: 10px; line-height: 1; }
-
 /* ── The corner on the About page ─────────────────────────────────────────── */
 
 .corner-play {
@@ -359,8 +329,6 @@
 
 	.player-btn { min-width: 44px; min-height: 44px; font-size: 13px; }
 	.player-play { width: 44px; height: 44px; font-size: 13px; }
-
-	.recent-window { max-height: 20rem; }
 }
 
 /* The links were wrapping to a second line and making the bar half again as
@@ -438,19 +406,42 @@
 	grid-template-columns: minmax(0, 600px) minmax(220px, 300px);
 	gap: 56px;
 	align-items: start;
+	/* The site's vertical rhythm is 50px -- h1 and .footer-row both use it. The
+	   room lost it because .room-head h1 has to kill the inherited margin-top to
+	   sit beside the Play button, which left the title row 8px above the list. */
+	margin-top: 50px;
 }
 
 .room-main { min-width: 0; }
 
-.room-head {
+/* Both columns open with a header row of the SAME height, which is the whole
+   reason the two labels line up. Anything else needs an offset computed from
+   the Play button's height, and the moment the button changes the offset is
+   wrong -- which is exactly how the labels came to be 26px apart. */
+.room-head,
+.pin-head {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	gap: 20px;
+	min-height: 44px;
 	margin-bottom: 18px;
 }
 
-.room-head h1 { margin: 0; width: auto; max-width: none; }
+/* One label, two columns. Left is an h1 and right is a p, so without this they
+   inherit different line-heights and different widths and sit on different
+   baselines even once the rows match. */
+.room-head h1,
+.pin-label {
+	margin: 0;
+	width: auto;
+	max-width: none;
+	font-size: 12px;
+	line-height: 1.4;
+	font-weight: 400;
+	color: var(--accent);
+	letter-spacing: 0.04em;
+}
 
 /* Spotify-sized, because it is the one control the page wants you to press. */
 .play-all {
@@ -471,6 +462,8 @@
 }
 
 .play-all:hover { transform: scale(1.04); }
+/* [hidden] loses to a class selector's display, so this has to be said. */
+.play-all[hidden] { display: none; }
 .play-all-icon { display: flex; }
 
 /* ── Track rows ───────────────────────────────────────────────────────────── */
@@ -479,20 +472,33 @@
    is roughly 360px, and the list takes what is left. It scrolls inside itself,
    so all hundred tracks stay reachable without the page growing. */
 .trk-window {
-	max-height: calc(100vh - 440px);
+	max-height: calc(100vh - 466px);
 	min-height: 220px;
 	overflow-y: auto;
 	overscroll-behavior: contain;
 	-webkit-overflow-scrolling: touch;
+	/* Clears the scrollbar. Without it the relative times sat flush against it
+	   with about three pixels between the two. */
+	padding-right: 12px;
+	/* The window lands mid-row, which is the honest signal that there is more.
+	   Cut hard it read as clipped; faded it reads as continuing. */
+	mask-image: linear-gradient(to bottom, #000 calc(100% - 24px), transparent);
 }
 
 .trk-list { list-style: none; margin: 0; padding: 0; }
 
 .trk { border-bottom: 1px solid var(--line-soft); }
 
+/* Every column here is a fixed track, and that is the point: each row is its
+   OWN grid, so any track sized from content resolves to a different width in
+   every row. With `auto` on the time and `minmax(0, 120px)` on the album, "5
+   minutes ago" and "2 hours ago" pushed their neighbours to different x
+   positions and the two middle columns read as drifting rather than as
+   columns. Fixed tracks make every row agree. 84px fits the longest relative
+   time the formatter produces. */
 .trk-btn {
 	display: grid;
-	grid-template-columns: 22px 36px minmax(0, 1fr) minmax(0, 120px) auto;
+	grid-template-columns: 22px 36px minmax(0, 1fr) 120px 84px;
 	align-items: center;
 	gap: 12px;
 	width: 100%;
@@ -567,13 +573,6 @@
 
 .pin[hidden] { display: none; }
 
-.pin-label {
-	font-size: 12px;
-	color: var(--accent);
-	margin: 0 0 12px;
-	letter-spacing: 0.04em;
-}
-
 /* Set as a quote, because it is the one sentence on the page in Edwin's own
    voice and nothing else marked it as his. */
 .pin-note {
@@ -581,11 +580,15 @@
 	font-weight: 100;
 	line-height: 1.35;
 	margin: 0 0 18px;
-	quotes: '\201C' '\201D';
 }
 
-.pin-note::before { content: open-quote; }
-.pin-note::after { content: close-quote; }
+/* The quotation marks belong to the QUOTE, not to the blockquote. When they
+   were on the blockquote the signature -- a child of it -- fell inside them,
+   and the closing mark rendered on its own line underneath, which is how a
+   stray " ended up floating below "-- Edwin". */
+.pin-quote { quotes: '\201C' '\201D'; }
+.pin-quote::before { content: open-quote; }
+.pin-quote::after { content: close-quote; }
 
 .pin-track {
 	display: grid;
@@ -636,6 +639,12 @@
 	.live-dot.is-live { animation: none; }
 	.play-all { transition: none; }
 	.play-all:hover { transform: none; }
+
+	/* The belt stops, and the viewport becomes scrollable instead -- the line is
+	   still there to be read, it just no longer moves on its own. */
+	.ticker-belt { animation: none; }
+	.ticker-viewport { overflow-x: auto; }
+	.ticker-belt .ticker-run:nth-child(2) { display: none; }
 }
 
 /* ── Narrow ───────────────────────────────────────────────────────────────── */
@@ -649,7 +658,7 @@
 @media only screen and (max-width: 640px) {
 	.trk-btn { grid-template-columns: 20px 34px minmax(0, 1fr) auto; gap: 10px; }
 	.trk-album { display: none; }
-	.trk-window { max-height: calc(100vh - 430px); }
+	.trk-window { max-height: calc(100vh - 454px); }
 	.pin-note { font-size: 18px; }
 
 	/* The bar is three rows on a phone -- artwork and title, seek, transport --
@@ -659,46 +668,115 @@
 }
 
 /* The note is the one sentence on the page in Edwin's own voice; signing it is
-   what makes that legible rather than assumed. */
+   what makes that legible rather than assumed.
+
+   Inline, and in the same inline formatting context as the quote, so it sits on
+   the quote's last line whenever there is room and only wraps when there is
+   not. display:block forced it onto a line of its own every time. */
 .pin-cite {
-	display: block;
 	font-size: 12px;
-	font-style: normal;
 	color: var(--muted);
-	margin-top: 8px;
+	margin-left: .5em;
+	white-space: nowrap;
 }
 
-/* ── The top strip (phones) ───────────────────────────────────────────────── */
+/* ── The ticker (phones) ──────────────────────────────────────────────────── */
 
-/* One live line above everything, because on a narrow screen the Lounge is
-   several screenfuls down and nothing above the fold hints the site has a room
-   in it. Deliberately not a nav bar: it earns the position by being the only
-   thing on the page that changes. */
-[data-strip] { display: none; }
-[data-strip][hidden] { display: none; }
+/* Pinned to the top of the viewport, edge to edge, and always moving. It began
+   as a static line inside .content, which put it 84px down the page -- far
+   enough in to compete with the bio while being too small to win. A ticker is
+   chrome: it belongs above the page, not inside it.
+
+   Opaque, because the page scrolls underneath. Below the photo modal and the
+   player bar by design -- it is the least urgent thing on the screen. */
+[data-ticker] { display: none; }
 
 @media only screen and (max-width: 1100px) {
-	[data-strip]:not([hidden]) { display: block; }
+	[data-ticker]:not([hidden]) { display: block; }
 }
 
-.strip {
+.ticker {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	z-index: 40;
+	display: block;
+	height: 34px;
+	background: var(--ground);
+	border-bottom: 1px solid var(--line);
+	font-size: 12px;
+	overflow: hidden;
+}
+
+/* The page is absolutely positioned against #particles-js, so it knows nothing
+   about a fixed bar above it. Only while the ticker is actually up. */
+@media only screen and (max-width: 1100px) {
+	body.has-ticker .content { margin-top: 35px; }
+}
+
+.ticker-viewport {
+	display: block;
+	height: 100%;
+	overflow: hidden;
+}
+
+/* The run appears TWICE inside the belt and the belt travels exactly -50%, so
+   at the instant the animation restarts the second copy is sitting precisely
+   where the first one began and the seam is invisible. Duration is measured in
+   js/listening/ticker.js so the speed is the same however long the belt is. */
+.ticker-belt {
+	display: flex;
+	height: 100%;
+	width: max-content;
+	animation-name: eh-ticker;
+	animation-timing-function: linear;
+	animation-iteration-count: infinite;
+}
+
+.ticker-run {
 	display: flex;
 	align-items: center;
-	gap: 10px;
-	padding: 10px 0 12px;
-	margin-bottom: 8px;
-	border-bottom: 1px solid var(--line);
-	border-color: var(--line);
-	font-size: 12px;
-	min-width: 0;
+	height: 100%;
+	white-space: nowrap;
 }
 
-.strip:hover { border-bottom: 1px solid var(--accent); }
+@keyframes eh-ticker {
+	from { transform: translateX(0); }
+	to   { transform: translateX(-50%); }
+}
 
-.strip-lede { flex: none; display: inline-flex; align-items: center; }
-.strip-now { color: var(--accent); }
-.strip-track { min-width: 0; flex: 1 1 auto; color: var(--muted); }
-.strip-go { flex: none; color: var(--accent); display: flex; }
+/* A thumb on the bar stops it, so a title going past can actually be read. */
+.ticker:active .ticker-belt { animation-play-state: paused; }
+
+.ticker-item {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	color: var(--muted);
+}
+
+/* The separator belongs to the item rather than to the markup, so the belt is
+   a list of tracks and not a list of tracks and punctuation.
+
+   All the spacing lives on these margins and none on the item, so the gap
+   before the dot equals the gap after it. Split between item padding and this
+   margin it came out 14px on one side and 28px on the other, and the dot read
+   as a stray mark floating between two phrases rather than as a separator. */
+.ticker-item::after {
+	content: '\00B7';
+	margin: 0 12px;
+	color: var(--accent);
+}
+
+.ticker-lede { color: var(--accent); letter-spacing: 0.04em; }
+.ticker-artist { color: var(--ink); }
+.ticker-track { color: var(--muted); }
+.ticker-when { color: var(--muted); opacity: .7; font-size: 11px; }
+
+/* The track the lede is talking about, set apart from the ones merely behind
+   it in the queue. */
+.ticker-item.is-head .ticker-track { color: var(--ink); }
 
 /* ── The photo modal (touch) ──────────────────────────────────────────────── */
 

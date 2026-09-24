@@ -554,3 +554,14 @@ p {
 	margin-left: auto;
 	margin-right: auto;
 }
+
+/* The header row needs the same cap for the same reason. Without it "Back" and
+   "Portfolio" sat on the full 1198px content width while the room and the
+   footer beneath them were capped at 956 and centred, so the title row hung
+   roughly 120px off each side of everything it was supposed to head. About and
+   Portfolio have no such cap, hence the scope. */
+.page-lounge .nav-row {
+	max-width: 956px;
+	margin-left: auto;
+	margin-right: auto;
+}

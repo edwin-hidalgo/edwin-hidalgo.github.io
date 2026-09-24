@@ -19,15 +19,17 @@
 </head>
 
 <body>
+
+	<!-- Phones only: the live ticker, pinned to the top of the viewport. It sits
+	     at <body> level rather than inside .content because it is chrome, not
+	     content -- js/nav.js swaps .content on every soft navigation, which
+	     would destroy it. Filled by js/listening/ticker.js, and hidden unless
+	     there is something true to say. -->
+	<div data-ticker hidden></div>
 	<div class="wrapper">
 		<div id="particles-js">
 			<div class="content">
 
-
-				<!-- Phones only: one live line at the top, because the Lounge is
-				     otherwise several screenfuls down. Filled by js/listening/strip.js
-				     and hidden unless there is something true to say. -->
-				<div data-strip hidden></div>
 
 				<!-- The bio and the photographs are one block: the photo is sized and
 				     positioned against this, not against the viewport. -->
