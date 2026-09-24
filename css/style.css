@@ -104,31 +104,44 @@ p {
 
 /* The hover photograph.
 
-   It used to set height alone -- 70% of the viewport height, width auto. Two
-   things went wrong with that: a square photo (jpmorgan is 1200x1200) became
-   as wide as it was tall and ran into the Lounge corner, and nothing responded
-   to window WIDTH at all, so resizing reflowed the text while the picture sat
-   unchanged. Both axes are bounded now, width/height stay auto, so the ratio
-   is the image's own and whichever limit binds first wins.
+   Sized against the text it sits beside, not against the viewport. That
+   matters because vh is a fraction of the physical window and so ignores
+   browser zoom entirely, while the text is in px and magnifies -- measured at
+   75/80/90/100/110% zoom, the picture held ~323x403 while the text block grew
+   397 -> 582px. It looked like it stopped scaling at 90%; in truth it never
+   scaled, and only appeared to below 90% because a width cap took over.
 
-   Positioned against .content rather than the viewport. As a fixed element at
-   top:11vh it was measuring from a different ruler than the text -- .content
-   is placed against its own parent and the h1 adds a fixed 50px margin -- so
-   the photo floated ~42px above the "About" label at every window size. Now
-   top:50px is literally that same margin, and the two line up by construction
-   instead of by a tuned number. */
+   height:100% of .bio makes the photo exactly as tall as the paragraphs beside
+   it at every zoom,
+   by construction rather than by a tuned number. The h1's 50px top margin
+   collapses through .bio, which is what keeps the top edge level with "About".
+
+   right:0 puts it on .content's right edge -- the same line the Lounge label
+   and the track title below it already sit on.
+
+   One shape for all eight, from three different source ratios (3:4, 4:5 and
+   1:1), so the picture no longer changes proportions as you move between
+   words. object-position is spelled out rather than left to default: it takes
+   equal amounts off BOTH sides, so the square shots lose a matching sliver
+   left and right instead of being trimmed from one edge. */
 .img {
     display: none;
     position: absolute;
-    left: 58%;
-    top: 50px;
+    top: 0;
+    right: 0;
+    /* height:100%, not top+bottom. For a REPLACED element an auto height with
+       both offsets set resolves to the image's intrinsic height and quietly
+       ignores bottom -- which rendered these at their native 960x1200. */
+    height: 100%;
     width: auto;
-    height: auto;
-    /* 430 rather than 460: a 4:5 portrait at the wider cap came within 4px
-       of the Lounge corner on a 2560x1400 window, which is no margin at all. */
-    max-width: min(34vw, 430px);
-    max-height: 56vh;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    object-position: 50% 50%;
     opacity: .9;
+}
+
+.bio {
+    position: relative;
 }
 
 #wrapper {
@@ -357,7 +370,7 @@ p {
     }
 }
 
-@media only screen and (max-width: 1300px) {
+@media only screen and (max-width: 1350px) {
     .img {
         display: none !important
     }
@@ -381,22 +394,23 @@ p {
     }
 }
 
-/* ── Below 1300px: the photo cannot appear, so the layout changes shape ──── */
+/* ── Below 1350px: the photo cannot appear, so the layout changes shape ──── */
 
-/* style.css already hides .img outright under 1300px -- it is positioned over
+/* style.css already hides .img outright under 1350px -- it is positioned over
    the right half and would land on the text. Two things follow from that.
    
-   First, the column centres. Above 1300px it hugs the left because the right
+   First, the column centres. Above 1350px it hugs the left because the right
    half belongs to the photograph; with no photograph, the asymmetry is just a
    gap, so even margins make it look intended rather than abandoned. The text
    itself stays left-aligned.
    
    Second, the hover affordance goes. Leaving a dotted underline on a word that
    can no longer reveal anything is a promise the page cannot keep. */
-@media only screen and (max-width: 1300px) {
-	.content > h1,
-	.content > h2,
-	.content > p,
+@media only screen and (max-width: 1350px) {
+	.bio > h1,
+	.bio > h2,
+	.bio > p,
+	.bio,
 	.nav-bottom,
 	.listening,
 	.listening-head,
@@ -467,9 +481,9 @@ p {
 
 .corner-now[hidden] { display: none; }
 
-/* Below 1300px the layout is symmetrical and the corner has no corner to sit
+/* Below 1350px the layout is symmetrical and the corner has no corner to sit
    in, so Lounge folds back into the row as a third ordinary group. */
-@media only screen and (max-width: 1300px) {
+@media only screen and (max-width: 1350px) {
 	.footer-row {
 		max-width: 600px;
 		margin-left: auto;
@@ -504,9 +518,9 @@ p {
    links -- Story, JP Morgan, Warby Parker, AForm, OKX -- and inherited the
    plain link style, so nothing suggested a photograph sat behind them.
 
-   Scoped to the width where a photo can actually appear, so below 1300px the
+   Scoped to the width where a photo can actually appear, so below 1350px the
    links simply go back to being links and the spans go back to being text. */
-@media only screen and (min-width: 1301px) {
+@media only screen and (min-width: 1351px) {
 	[data-photo]:not(img) {
 		border-bottom: 1px dotted var(--muted);
 		transition: border-color .2s ease-in-out;
