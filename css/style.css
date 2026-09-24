@@ -106,22 +106,28 @@ p {
 
    It used to set height alone -- 70% of the viewport height, width auto. Two
    things went wrong with that: a square photo (jpmorgan is 1200x1200) became
-   as wide as it was tall and ran off toward the footer, and nothing responded
+   as wide as it was tall and ran into the Lounge corner, and nothing responded
    to window WIDTH at all, so resizing reflowed the text while the picture sat
-   unchanged.
+   unchanged. Both axes are bounded now, width/height stay auto, so the ratio
+   is the image's own and whichever limit binds first wins.
 
-   Now both axes are bounded and width/height stay auto, so the aspect ratio is
-   the image's own and whichever limit binds first wins. The vertical band ends
-   around 69vh, which keeps it clear of the Lounge corner underneath. */
+   Positioned against .content rather than the viewport. As a fixed element at
+   top:11vh it was measuring from a different ruler than the text -- .content
+   is placed against its own parent and the h1 adds a fixed 50px margin -- so
+   the photo floated ~42px above the "About" label at every window size. Now
+   top:50px is literally that same margin, and the two line up by construction
+   instead of by a tuned number. */
 .img {
     display: none;
-    position: fixed;
+    position: absolute;
     left: 58%;
-    top: 11vh;
+    top: 50px;
     width: auto;
     height: auto;
-    max-width: min(34vw, 460px);
-    max-height: 58vh;
+    /* 430 rather than 460: a 4:5 portrait at the wider cap came within 4px
+       of the Lounge corner on a 2560x1400 window, which is no margin at all. */
+    max-width: min(34vw, 430px);
+    max-height: 56vh;
     opacity: .9;
 }
 
