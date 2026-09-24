@@ -488,3 +488,12 @@ button.now:hover .now-title { color: var(--accent); }
 @media (max-width: 1200px) {
 	.player-links { display: none; }
 }
+
+/* The corner is right-aligned, which put the marquee's overflow on the LEFT --
+   so at rest it parked showing the tail of the title with the artist's name
+   already scrolled off. The label fills the box either way once it overflows,
+   so aligning this one line left costs nothing visually and means it starts
+   at the beginning. */
+.corner-now .marquee {
+	text-align: left;
+}

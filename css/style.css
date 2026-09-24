@@ -102,17 +102,27 @@ p {
 }
 
 
+/* The hover photograph.
+
+   It used to set height alone -- 70% of the viewport height, width auto. Two
+   things went wrong with that: a square photo (jpmorgan is 1200x1200) became
+   as wide as it was tall and ran off toward the footer, and nothing responded
+   to window WIDTH at all, so resizing reflowed the text while the picture sat
+   unchanged.
+
+   Now both axes are bounded and width/height stay auto, so the aspect ratio is
+   the image's own and whichever limit binds first wins. The vertical band ends
+   around 69vh, which keeps it clear of the Lounge corner underneath. */
 .img {
     display: none;
-    height: 70%;
-    left: 60%;
-    opacity: .9;
     position: fixed;
-    top: 15%
-}
-
-.img_winter {
-    left: 57%;
+    left: 58%;
+    top: 11vh;
+    width: auto;
+    height: auto;
+    max-width: min(34vw, 460px);
+    max-height: 58vh;
+    opacity: .9;
 }
 
 #wrapper {
