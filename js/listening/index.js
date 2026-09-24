@@ -12,7 +12,7 @@
 // close button, and simply not pressing play now all do that job, and it was
 // occupying the top-right of the room.
 
-import { render as renderLately, playAll, firstTrack } from './lately.js';
+import { render as renderLately, playAll, firstTrack, LABEL } from './lately.js';
 import { render as renderAnchor } from './anchor.js';
 import { renderStanding } from './standing.js';
 import { playFrom } from './track.js';
@@ -55,7 +55,7 @@ function bootCorner(standing, payload) {
 	btn.addEventListener('click', () => {
 		if (player.playState() !== 'idle') return player.togglePlay();
 		const items = [payload.nowPlaying, ...(payload.recent ?? [])].filter(Boolean);
-		if (items.length) playFrom(items, 0, 'Edwin’s recent listens');
+		if (items.length) playFrom(items, 0, LABEL);
 	});
 
 	btn.querySelector('.corner-icon').innerHTML = icon.play(10);
@@ -84,7 +84,7 @@ export async function boot() {
 	root.innerHTML = `<div class="room">
 			<div class="room-main">
 				<div class="room-head">
-					<h1>Edwin&rsquo;s recent listens</h1>
+					<h1>Recent listens</h1>
 					<button class="play-all" type="button">
 						<span class="play-all-icon">${icon.play(16)}</span><span class="play-all-text">Play</span>
 					</button>

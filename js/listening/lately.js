@@ -20,7 +20,10 @@ import { playFrom, rowKey, resolveTrack } from './track.js';
 import { icon } from '../icons.js';
 import * as player from '../player/engine.js';
 
-const LABEL = 'Edwin’s recent listens';
+// Exported because the About corner starts the same run and used to carry its
+// own hard-coded copy of this string -- so a rename changed the Lounge's
+// player label and left the corner's saying something else.
+export const LABEL = 'Recent listens';
 
 function art(url, cls) {
 	if (!url) return `<span class="${cls}"></span>`;

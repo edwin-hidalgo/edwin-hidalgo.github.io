@@ -30,8 +30,17 @@ import { isLive, timeAgoShort, esc } from './format.js';
 // rather than as one line being dragged past.
 const ITEMS = 8;
 
-// Pixels per second. Slow enough to read a title as it goes by.
-const SPEED = 45;
+// Pixels per second, slow enough to read a title as it goes by. The value lives
+// in CSS as --ticker-speed so the two breakpoints can disagree -- a phone shows
+// two items at a time and a desktop shows nine, so the same speed reads as
+// brisk on one and as a trading floor on the other. Falling back to the mobile
+// figure keeps this honest if the property ever goes missing.
+const SPEED_FALLBACK = 45;
+
+function speed(el) {
+	const raw = parseFloat(getComputedStyle(el).getPropertyValue('--ticker-speed'));
+	return Number.isFinite(raw) && raw > 0 ? raw : SPEED_FALLBACK;
+}
 
 // Last.fm hands /api/lately the 300x300 image, which is 14KB for a square drawn
 // at 20. The CDN serves a 64s variant of the same hash at 1.6KB -- verified
@@ -116,11 +125,13 @@ export function startTicker(belt) {
 	const measure = () => {
 		const width = first.scrollWidth;
 		if (!width) return;
-		belt.style.animationDuration = `${Math.max(12, width / SPEED)}s`;
+		belt.style.animationDuration = `${Math.max(12, width / speed(belt))}s`;
 	};
 
 	measure();
-	// The items arrive asynchronously and the viewport changes with rotation.
+	// The items arrive asynchronously, the viewport changes with rotation, and
+	// crossing the breakpoint changes both the belt's width and its speed --
+	// this catches all three.
 	if (typeof ResizeObserver === 'function') {
 		const ro = new ResizeObserver(measure);
 		ro.observe(first);

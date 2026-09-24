@@ -397,13 +397,17 @@
 
 /* ── The room ─────────────────────────────────────────────────────────────── */
 
-/* Two columns on desktop: the list on the left, the pinned song in the right
-   half that was otherwise empty. That is not only about filling space -- moving
-   the pinned card out of the vertical flow is what buys the room to fit above
-   the fold. */
+/* Two columns on desktop. Moving the pinned card out of the vertical flow is
+   what buys the room to fit above the fold, and it fills a right half that was
+   otherwise empty.
+
+   The chosen thing reads first: the pinned song on the left, the log of what
+   actually played on the right. Left is what Edwin picked, right is what
+   happened -- a split the queued-songs section will extend rather than
+   disturb. */
 .room {
 	display: grid;
-	grid-template-columns: minmax(0, 600px) minmax(220px, 300px);
+	grid-template-columns: minmax(220px, 300px) minmax(0, 600px);
 	gap: 56px;
 	align-items: start;
 	/* The site's vertical rhythm is 50px -- h1 and .footer-row both use it. The
@@ -413,6 +417,12 @@
 }
 
 .room-main { min-width: 0; }
+
+/* Ordered rather than reordered in the DOM, because the narrow layout wants the
+   same thing -- card first, then the list -- and one declaration serves both.
+   Swapping the markup instead would invert the narrow layout and need a
+   counter-override to undo it. */
+.pin { order: -1; }
 
 /* Both columns open with a header row of the SAME height, which is the whole
    reason the two labels line up. Anything else needs an offset computed from
@@ -651,9 +661,9 @@
 /* ── Narrow ───────────────────────────────────────────────────────────────── */
 
 @media only screen and (max-width: 1100px) {
-	/* One column: the pinned song leads, then the list. */
+	/* One column. The pinned song still leads -- .pin's order is set in the base
+	   rule now, so this only has to collapse the columns. */
 	.room { grid-template-columns: minmax(0, 1fr); gap: 30px; }
-	.pin { order: -1; }
 }
 
 @media only screen and (max-width: 640px) {
@@ -691,17 +701,14 @@
    Opaque, because the page scrolls underneath. Below the photo modal and the
    player bar by design -- it is the least urgent thing on the screen. */
 [data-ticker] { display: none; }
+[data-ticker]:not([hidden]) { display: block; }
 
-@media only screen and (max-width: 1100px) {
-	[data-ticker]:not([hidden]) { display: block; }
-
-	/* The Lounge never shows one. Said in CSS rather than in JS because the host
-	   sits at <body> level and survives the swap, so a JS hide that waits on
-	   /api/lately left the previous page's ticker visibly sitting on the Lounge
-	   for over a second. A body class is set synchronously by js/nav.js, so this
-	   applies in the first frame after the swap. */
-	.page-lounge [data-ticker] { display: none; }
-}
+/* The Lounge never shows one. Said in CSS rather than in JS because the host
+   sits at <body> level and survives the swap, so a JS hide that waits on
+   /api/lately left the previous page's ticker visibly sitting on the Lounge
+   for over a second. A body class is set synchronously by js/nav.js, so this
+   applies in the first frame after the swap. */
+.page-lounge [data-ticker] { display: none; }
 
 .ticker {
 	position: fixed;
@@ -715,6 +722,9 @@
 	border-bottom: 1px solid var(--line);
 	font-size: 12px;
 	overflow: hidden;
+	/* Read back by js/listening/ticker.js to set the belt's duration, so the two
+	   breakpoints can run at different speeds off one measurement. */
+	--ticker-speed: 45;
 	/* The room it occupies is reserved from the first frame; this is only the
 	   ticker arriving into it, and a fade reads as intentional where a pop
 	   reads as something having gone wrong. */
@@ -732,8 +742,11 @@
    synchronously, so this is settled before the first frame and nothing moves.
    Same reasoning as .content's padding-bottom above: a constant footprint is
    worth more than a precisely-sized one that arrives late. */
-@media only screen and (max-width: 1100px) {
-	body:not(.page-lounge) .content { margin-top: 35px; }
+body:not(.page-lounge) .content { margin-top: 35px; }
+
+@media only screen and (min-width: 1101px) {
+	/* The desktop bar is 30 + 1px of border. */
+	body:not(.page-lounge) .content { margin-top: 31px; }
 }
 
 .ticker-viewport {
@@ -812,6 +825,34 @@
 /* The track the lede is talking about, set apart from the ones merely behind
    it in the queue. */
 .ticker-item.is-head .ticker-track { color: var(--ink); }
+
+/* Desktop gets the same information in a quieter voice.
+
+   On a phone the ticker is the only way into the Lounge -- the room is several
+   screenfuls down and nothing else hints at it. On a desktop the corner already
+   names the current track and offers Play, so the bar is room tone rather than
+   navigation, and it should not read like a trading floor above a page whose
+   whole character is stillness. Nine items are visible at this width instead of
+   two, so the same speed and weight land very differently: smaller, slower, no
+   artwork, one step further toward muted. */
+@media only screen and (min-width: 1101px) {
+	.ticker {
+		height: 30px;
+		font-size: 11px;
+		--ticker-speed: 28;
+	}
+
+	/* Dropped in CSS rather than by branching the template, so renderTicker()
+	   stays one code path and crossing the breakpoint needs no re-render. */
+	.ticker-art { display: none; }
+
+	/* One step down from --ink, not two. The quieting comes mostly from the
+	   size, the missing artwork and the speed; taking the text further down
+	   stops being recessed and starts being unreadable -- --line-strong is a
+	   rule colour and sits near 1.4:1 against --ground. */
+	.ticker-artist { color: var(--muted-strong); }
+	.ticker-item::after { opacity: .45; }
+}
 
 /* ── The photo modal (touch) ──────────────────────────────────────────────── */
 
