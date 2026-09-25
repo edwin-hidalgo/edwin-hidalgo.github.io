@@ -50,9 +50,13 @@ const pill = (label, value, current, group) =>
 
 function row(item, i, kind) {
 	const plays = `<span class="top-plays">${item.plays.toLocaleString()}</span>`;
+	// One line for both kinds, deliberately. A track stacked over its artist made
+	// its rows 51px against an artist row's 38, so switching Artists -> Tracks
+	// grew the column by 65px and pushed the page off the fold. Reserving the
+	// taller height instead would have made it scroll in BOTH states, which is
+	// worse than either.
 	const main = kind === 'tracks'
-		? `<span class="top-main"><span class="top-name">${esc(item.name)}</span>
-		     <span class="top-by">${esc(item.artist ?? '')}</span></span>`
+		? `<span class="top-main"><span class="top-name">${esc(item.name)}</span><span class="top-by">${esc(item.artist ?? '')}</span></span>`
 		: `<span class="top-main"><span class="top-name">${esc(item.name)}</span></span>`;
 
 	// A track can be played; an artist can only be looked up. The rank turns

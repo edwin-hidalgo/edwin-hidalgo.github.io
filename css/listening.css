@@ -912,7 +912,20 @@ button.top-btn:hover .top-play,
 .top-out { opacity: 0; color: var(--muted); font-size: 11px; margin-left: 4px; }
 a.top-btn:hover .top-out { opacity: 1; }
 
-.top-main { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+/* A row, not a stack: both kinds are one line so the section's height never
+   changes when the toggle does. */
+.top-main {
+	min-width: 0;
+	display: flex;
+	align-items: baseline;
+	gap: 6px;
+	overflow: hidden;
+}
+
+/* The artist gives up width first -- the track name is what the chart is
+   about, so it keeps its room and the artist ellipses. */
+.top-by { flex: 0 1 auto; min-width: 0; }
+.top-by::before { content: '\00B7'; margin-right: 6px; color: var(--line-strong); }
 
 .top-name {
 	font-size: 13px;
@@ -1249,7 +1262,10 @@ a.top-btn:hover .top-out { opacity: 1; }
 @media only screen and (min-width: 1101px) {
 	.ticker {
 		height: 30px;
-		font-size: 11px;
+		/* The type size stays at 12px everywhere. Only the speed changes: nine
+		   items are visible at this width against two on a phone, so the same
+		   rate reads as a trading floor here and as alive there. Shrinking the
+		   text as well was quieting the wrong variable. */
 		--ticker-speed: 28;
 	}
 
