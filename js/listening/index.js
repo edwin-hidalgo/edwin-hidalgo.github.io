@@ -98,19 +98,24 @@ export async function boot() {
 
 	root.innerHTML = `<div class="room">
 			<div class="room-main">
-				<div class="room-head">
-					<h1>Recent listens</h1>
-					<button class="play-all" type="button">
-						<span class="play-all-icon">${icon.play(16)}</span><span class="play-all-text">Play</span>
-					</button>
-				</div>
-				<div class="lately"><p class="listening-empty">Finding out&hellip;</p></div>
+				<section class="room-block">
+					<div class="room-head">
+						<h1>Recent listens</h1>
+						<button class="play-all" type="button">
+							<span class="play-all-icon">${icon.play(16)}</span><span class="play-all-text">Play</span>
+						</button>
+					</div>
+					<div class="lately"><p class="listening-empty">Finding out&hellip;</p></div>
+				</section>
+				<!-- The queue sits under the list it belongs with: both are lists of
+				     tracks, and putting them in the same column is also what brings
+				     the two columns level. -->
+				<section class="queue room-block" hidden></section>
+				<div class="leave-host" hidden></div>
 			</div>
 			<aside class="room-side">
-				<div class="pin" hidden></div>
-				<section class="queue" hidden></section>
-				<div class="leave-host" hidden></div>
-				<section class="top" hidden></section>
+				<div class="pin room-block" hidden></div>
+				<section class="top room-block" hidden></section>
 			</aside>
 		</div>`;
 

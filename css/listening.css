@@ -373,7 +373,12 @@
 	align-items: baseline;
 	gap: 7px;
 	white-space: nowrap;
-	margin: 0;
+	/* 12px, not 0, to match what the UA gives the Elsewhere and Portfolio
+	   paragraphs beside it. `margin: 0` left this line sitting 4px above them --
+	   the label row aligned, so only the line under it looked wrong, which is
+	   exactly the kind of misalignment that reads as sloppy without being
+	   obvious. */
+	margin: 12px 0 0;
 }
 
 /* The only flexible item: it gives up width first and clips, so the controls
@@ -494,8 +499,11 @@
    that visitors can break anyway would be mutilating the feature to preserve
    an illusion -- so the page scrolls a little, and the list still does not. */
 .trk-window {
-	max-height: calc(100vh - 466px);
-	min-height: 220px;
+	/* Tuned so the two columns end near level and the room fits the window. The
+	   left column's height is fixed by the pinned card plus the top charts; this
+	   is the only dial on the right, since the queue below it has its own. */
+	max-height: calc(100vh - 639px);
+	min-height: 150px;
 	overflow-y: auto;
 	overscroll-behavior: contain;
 	-webkit-overflow-scrolling: touch;
@@ -679,7 +687,11 @@
 }
 
 @media only screen and (max-width: 640px) {
-	.trk-btn { grid-template-columns: 20px 34px minmax(0, 1fr) auto; gap: 10px; }
+	/* A fixed last column, not auto: the queue's cell says "CC 11m" where the
+	   recent list's says "2 hours ago", and auto sized each to its own content
+	   -- which moved the title column and broke the alignment between two lists
+	   that are supposed to read as one. */
+	.trk-btn { grid-template-columns: 20px 34px minmax(0, 1fr) 68px; gap: 10px; }
 	.trk-album { display: none; }
 	.trk-window { max-height: calc(100vh - 454px); }
 	.pin-note { font-size: 18px; }
@@ -703,110 +715,74 @@
 	white-space: nowrap;
 }
 
+/* ── Sections ─────────────────────────────────────────────────────────────── */
+
+/* The Lounge holds four things. With only whitespace between them they read as
+   one undivided mass -- worst on a phone, where all four stack. The Portfolio
+   page already solved this with a 2px --line-strong rule between major blocks;
+   same vocabulary rather than a second one. */
+.room-block + .room-block {
+	margin-top: 30px;
+	padding-top: 30px;
+	border-top: 2px solid var(--line-strong);
+}
+
+/* Collapsed to one column, the four blocks are still two parents' worth of
+   siblings, so the adjacent-sibling rule leaves no rule between the last block
+   of the left column and the first of the right. Visually they are adjacent. */
+@media only screen and (max-width: 1100px) {
+	.room-main > .room-block:first-child {
+		margin-top: 30px;
+		padding-top: 30px;
+		border-top: 2px solid var(--line-strong);
+	}
+}
+
 /* ── Songs visitors have left ─────────────────────────────────────────────── */
 
-/* Under the pinned card, in the column of things that were CHOSEN -- Edwin's
-   song, then other people's. The log on the right is what actually happened.
-   Keeping them apart is what lets each say what it really is. */
-
+/* The same list as the one above it, with one extra column for the signature.
+   It shares .trk's grid rather than carrying its own -- three columns against
+   the recent list's five made two lists in one column read as two unrelated
+   widgets. */
 .queue[hidden] { display: none; }
 
-.q-head {
-	display: flex;
-	align-items: baseline;
-	justify-content: space-between;
-	gap: 12px;
-	margin-bottom: 12px;
+/* Its own scroll, so a full queue cannot push the page off the fold. Same
+   treatment .trk-window has, fade included, so a half-row reads as "there is
+   more" rather than as clipped. */
+.q-window {
+	max-height: 116px;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	-webkit-overflow-scrolling: touch;
+	padding-right: 12px;
+	mask-image: linear-gradient(to bottom, #000 calc(100% - 20px), transparent);
 }
 
-.q-label {
-	margin: 0;
-	width: auto;
-	max-width: none;
-	font-size: 12px;
-	line-height: 1.4;
-	color: var(--accent);
+/* The signature, sharing the time cell. Right-hand side, as asked, without
+   costing the list a column the one above it does not have. */
+.trk-when .q-sign {
+	color: var(--muted-strong);
 	letter-spacing: 0.04em;
+	margin-right: 6px;
 }
 
-.q-count { font-size: 11px; color: var(--muted); flex: none; }
+.q-count { color: var(--muted); letter-spacing: 0; font-size: 11px; }
 
-.q-list { list-style: none; margin: 0; padding: 0; }
-
-.q-row { border-bottom: 1px solid var(--line-soft); }
-.q-row:last-child { border-bottom: 0; }
-
-.q-btn {
-	display: grid;
-	grid-template-columns: 34px minmax(0, 1fr) auto;
-	align-items: center;
-	gap: 10px;
-	width: 100%;
-	padding: 8px 0;
-	background: none;
-	border: 0;
-	font: inherit;
-	color: inherit;
-	text-align: left;
-	cursor: pointer;
-}
-
-.q-art {
-	width: 34px;
-	height: 34px;
-	border-radius: 2px;
-	overflow: hidden;
-	background: var(--line-soft);
-}
-
-.q-art img { display: block; width: 100%; height: 100%; object-fit: cover; }
-
-.q-main { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-
-.q-title {
-	font-size: 14px;
-	font-weight: 300;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.q-artist {
-	font-size: 11px;
-	color: var(--muted);
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-/* The signature. Most people will leave none, so the row has to read correctly
-   with nothing here at all -- hence a separate span rather than a reserved
-   column. */
-.q-sign { color: var(--muted-strong); }
-.q-initials { letter-spacing: 0.04em; }
-
-.q-when { font-size: 11px; color: var(--muted); flex: none; white-space: nowrap; }
-
-/* The payoff: Edwin actually listened to it. This is the only state change in
-   the feature, so it gets the accent and nothing else does. */
+/* The one thing this list says that the recent list does not. */
 .q-played {
 	display: inline-flex;
 	align-items: center;
 	gap: 4px;
-	font-size: 11px;
 	color: var(--accent);
 	white-space: nowrap;
 }
 
 .q-tick { font-size: 10px; }
+.q-row.is-played .trk-title { color: var(--muted-strong); }
 
-.q-row.is-playing .q-title { color: var(--accent); }
-.q-row.is-played .q-title { color: var(--muted-strong); }
-
-.q-empty { font-size: 13px; color: var(--muted); margin: 0 0 12px; width: auto; max-width: none; }
-
+/* An action, not a caption -- so it sits where Play sits on the list above. */
 .q-open {
-	margin-top: 14px;
+	flex: none;
 	font: inherit;
 	font-size: 12px;
 	color: var(--accent);
@@ -818,6 +794,8 @@
 }
 
 .q-open:hover { border-bottom-color: var(--accent); }
+
+.q-empty { margin: 0; font-size: 13px; color: var(--muted); width: auto; max-width: none; }
 
 /* The visitor's mark in the log. Says who a song came from, where the queue row
    says that Edwin played it -- the same fact from both ends. */
@@ -890,7 +868,7 @@
 
 .top-btn {
 	display: grid;
-	grid-template-columns: 16px minmax(0, 1fr) auto;
+	grid-template-columns: 22px minmax(0, 1fr) auto;
 	align-items: center;
 	gap: 10px;
 	width: 100%;
@@ -907,7 +885,20 @@ a.top-btn { text-decoration: none; }
 a.top-btn:hover .top-name,
 button.top-btn:hover .top-name { color: var(--accent); }
 
-.top-rank { font-size: 11px; color: var(--muted); text-align: right; }
+/* The same swap the recent list uses, so "playable" looks identical wherever it
+   appears. Only on button rows: an artist row is an <a> to Last.fm, and a play
+   triangle there would promise something the row cannot do. */
+.top-rank { position: relative; display: block; text-align: right; }
+.top-n { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.top-play { display: none; justify-content: flex-end; color: var(--accent); }
+button.top-btn:hover .top-n,
+.top-row.is-playing .top-n { display: none; }
+button.top-btn:hover .top-play,
+.top-row.is-playing .top-play { display: flex; }
+
+/* An artist goes somewhere else, and says so rather than staying silent. */
+.top-out { opacity: 0; color: var(--muted); font-size: 11px; margin-left: 4px; }
+a.top-btn:hover .top-out { opacity: 1; }
 
 .top-main { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
 
@@ -1148,11 +1139,13 @@ button.top-btn:hover .top-name { color: var(--accent); }
    synchronously, so this is settled before the first frame and nothing moves.
    Same reasoning as .content's padding-bottom above: a constant footprint is
    worth more than a precisely-sized one that arrives late. */
-body:not(.page-lounge) .content { margin-top: 35px; }
-
-@media only screen and (min-width: 1101px) {
-	/* The desktop bar is 30 + 1px of border. */
-	body:not(.page-lounge) .content { margin-top: 31px; }
+/* Phones only. .content sits at top:10% -- 84px on a 390x844 phone against a
+   35px bar -- so the reserve is what protects a short landscape viewport, where
+   10% of 390 is 39px. Desktop needs none of it: 10% of 863 is 86px against a
+   31px bar, 55px of clearance, and reserving 31 more was the whole reason the
+   home page stopped fitting its window. */
+@media only screen and (max-width: 1100px) {
+	body:not(.page-lounge) .content { margin-top: 35px; }
 }
 
 .ticker-viewport {

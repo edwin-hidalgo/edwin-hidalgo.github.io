@@ -183,10 +183,16 @@ p {
     max-width: none
 }
 
+/* space-between with nowrap paragraphs and no gap left only 28px between the
+   two groups at any width under ~1300px, and nothing to give when the text grew
+   -- so they ran into each other instead of reflowing. A real gap sets the
+   floor, and wrap lets a group that no longer fits drop to its own line. */
 .nav-bottom {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: flex-start;
+    gap: 20px 48px;
     margin-top: 50px;
     max-width: 600px;
     width: 80%
@@ -442,9 +448,10 @@ p {
    leaves empty. */
 .footer-row {
 	display: flex;
+	flex-wrap: wrap;
 	align-items: flex-start;
 	justify-content: space-between;
-	gap: 40px;
+	gap: 28px 40px;
 	width: 100%;
 	/* The gap the bottom row always had; it moves up to the wrapper so all
 	   three groups share one baseline instead of each paying for its own. */
@@ -545,15 +552,8 @@ p {
 	border-bottom: 2px solid var(--accent);
 }
 
-/* The Lounge has no bottom-right corner -- its second room is reached from the
-   header row instead -- so spreading the footer edge to edge left a single
-   600px block stranded at the left of a 1210px row. Centred, it lines up with
-   the listening column above it. Same convention as .page-portfolio. */
-.page-lounge .footer-row {
-	max-width: 956px;
-	margin-left: auto;
-	margin-right: auto;
-}
+/* The Lounge has no footer at all now, the way portfolio.html never had one:
+   the room is the page, and Portfolio is reachable from its header row. */
 
 /* The header row needs the same cap for the same reason. Without it "Back" and
    "Portfolio" sat on the full 1198px content width while the room and the

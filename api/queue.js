@@ -57,6 +57,9 @@ const publicShape = s => ({
   id: s.id,
   artist: s.artist,
   track: s.track,
+  // Songs left before the queue rendered as a full list have no album stored;
+  // the cell is simply empty for those rather than back-filled with a guess.
+  album: s.album ?? null,
   art: s.art ?? null,
   preview: s.preview ?? null,
   links: s.links ?? {},
@@ -203,6 +206,7 @@ async function submit(req, res) {
     trackId: apple.id,
     artist,
     track,
+    album: apple.album ?? null,
     art: apple.artwork ?? null,
     preview: apple.previewUrl
       ? { url: apple.previewUrl, seconds: 30, source: 'Apple Music' }

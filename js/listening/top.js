@@ -17,6 +17,7 @@
 // One list, two honest behaviours, rather than one pretend one.
 
 import { esc } from './format.js';
+import { icon } from '../icons.js';
 import { playFrom, rowKey } from './track.js';
 import * as player from '../player/engine.js';
 
@@ -54,17 +55,20 @@ function row(item, i, kind) {
 		     <span class="top-by">${esc(item.artist ?? '')}</span></span>`
 		: `<span class="top-main"><span class="top-name">${esc(item.name)}</span></span>`;
 
-	// A track can be played; an artist can only be looked up.
+	// A track can be played; an artist can only be looked up. The rank turns
+	// into a play triangle only on the rows that can actually play, so the
+	// affordance is never a promise the row cannot keep.
 	if (kind === 'tracks') {
 		return `<li class="top-row" data-key="${esc(rowKey(item, i, SCOPE))}" data-i="${i}">
 			<button class="top-btn" type="button">
-				<span class="top-rank">${i + 1}</span>${main}${plays}
+				<span class="top-rank"><span class="top-n">${i + 1}</span><span class="top-play">${icon.play(11)}</span></span>${main}${plays}
 			</button>
 		</li>`;
 	}
 	return `<li class="top-row">
 		<a class="top-btn" href="${esc(item.url ?? '#')}" target="_blank" rel="noopener noreferrer">
-			<span class="top-rank">${i + 1}</span>${main}${plays}
+			<span class="top-rank"><span class="top-n">${i + 1}</span></span>
+			<span class="top-main"><span class="top-name">${esc(item.name)}<span class="top-out">&nearr;</span></span></span>${plays}
 		</a>
 	</li>`;
 }
@@ -128,8 +132,13 @@ export function mountTop(el) {
 
 	const marks = () => {
 		const owner = player.currentOwner();
-		el.querySelectorAll('.top-row').forEach(li =>
-			li.classList.toggle('is-playing', Boolean(li.dataset.key) && li.dataset.key === owner));
+		const playing = player.playState() === 'playing';
+		el.querySelectorAll('.top-row').forEach(li => {
+			const mine = Boolean(li.dataset.key) && li.dataset.key === owner;
+			li.classList.toggle('is-playing', mine);
+			const glyph = li.querySelector('.top-play');
+			if (glyph) glyph.innerHTML = mine && playing ? icon.pause(11) : icon.play(11);
+		});
 	};
 	player.subscribe(reason => { if (reason !== 'progress') marks(); });
 
