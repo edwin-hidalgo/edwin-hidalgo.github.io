@@ -97,3 +97,63 @@ export async function recentTracks(limit = 100) {
     return { recent: [] };
   }
 }
+
+// Last.fm's native period buckets. These are the only windows the API supports
+// -- there is no arbitrary date range -- so the page offers exactly these
+// rather than inventing a control the upstream cannot honour. Same set Onus
+// uses in app/src/adapters/lastfm.ts.
+export const PERIODS = {
+  '7day': 'last 7 days',
+  '1month': 'last 30 days',
+  'overall': 'all time',
+};
+
+// Top artists or top tracks for a window.
+//
+// A different question from recentTracks(): that one is a chronology, this is a
+// tally. Neither can be derived from the other -- a hundred recent scrobbles
+// say nothing about a year -- which is why this is its own call rather than
+// something counted client-side from the log.
+export async function topFor(kind, period, limit = 5) {
+  const method = kind === 'tracks' ? 'user.gettoptracks' : 'user.gettopartists';
+  if (process.env.LISTENING_PAUSED === '1') return { paused: true };
+
+  const key = process.env.LASTFM_API_KEY;
+  const user = process.env.LASTFM_USER;
+  if (!key || !user) return { items: [] };
+
+  const url = `${API_ROOT}?method=${method}`
+    + `&user=${encodeURIComponent(user)}`
+    + `&api_key=${encodeURIComponent(key)}`
+    + `&period=${encodeURIComponent(period)}`
+    + `&limit=${limit}&format=json`;
+
+  try {
+    const upstream = await fetch(url, {
+      headers: { accept: 'application/json' },
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
+    if (!upstream.ok) return { items: [] };
+    const json = await upstream.json();
+    if (json?.error === ERROR_PRIVATE) return { private: true };
+    if (json?.error) return { items: [] };
+
+    const raw = kind === 'tracks' ? json?.toptracks?.track : json?.topartists?.artist;
+    const rows = Array.isArray(raw) ? raw : raw ? [raw] : [];
+
+    const items = rows.map(r => ({
+      name: r?.name ?? '',
+      // Tracks carry their artist; artists do not.
+      artist: kind === 'tracks' ? (r?.artist?.name ?? r?.artist?.['#text'] ?? '') : null,
+      plays: Number(r?.playcount) || 0,
+      url: r?.url ?? null,
+      // Last.fm's top-chart images are almost always the grey placeholder, so
+      // they are deliberately not read here -- the Lounge would rather show no
+      // artwork than a wall of identical grey stars.
+    })).filter(i => i.name);
+
+    return { items, fetchedAt: Date.now() };
+  } catch {
+    return { items: [] };
+  }
+}

@@ -430,7 +430,7 @@
 	min-width: 0;
 	display: flex;
 	flex-direction: column;
-	gap: 38px;
+	gap: 30px;
 }
 
 /* Both columns open with a header row of the SAME height, which is the whole
@@ -487,9 +487,12 @@
 
 /* ── Track rows ───────────────────────────────────────────────────────────── */
 
-/* Sized off the viewport so the room lands above the fold: the chrome around it
-   is roughly 360px, and the list takes what is left. It scrolls inside itself,
-   so all hundred tracks stay reachable without the page growing. */
+/* Sized off the viewport, and still the reason the RIGHT column lands above the
+   fold. The left column no longer does, and cannot: it carries the pinned song,
+   the visitors' queue and the top charts, and the queue's height belongs to
+   whoever leaves songs. Trimming the charts to protect a one-screen promise
+   that visitors can break anyway would be mutilating the feature to preserve
+   an illusion -- so the page scrolls a little, and the list still does not. */
 .trk-window {
 	max-height: calc(100vh - 466px);
 	min-height: 220px;
@@ -823,6 +826,118 @@
 	color: var(--accent);
 	white-space: nowrap;
 }
+
+/* ── Top artists and tracks ───────────────────────────────────────────────── */
+
+/* Under the queue, in the column that is about Edwin rather than about the last
+   few hours -- and filling the space that column had been carrying empty since
+   the pinned card moved left. */
+
+.top[hidden] { display: none; }
+
+.top-head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 8px;
+}
+
+.top-label {
+	margin: 0;
+	width: auto;
+	max-width: none;
+	font-size: 12px;
+	line-height: 1.4;
+	color: var(--accent);
+	letter-spacing: 0.04em;
+}
+
+.top-kinds { display: inline-flex; gap: 2px; flex: none; }
+
+.top-windows { display: flex; flex-wrap: wrap; gap: 2px; margin-bottom: 10px; }
+
+/* Text buttons rather than a segmented control: the page has no other boxed
+   widget, and one here would be the loudest thing in the column. */
+.top-pill {
+	font: inherit;
+	font-size: 11px;
+	color: var(--muted);
+	background: none;
+	border: 0;
+	border-bottom: 1px solid transparent;
+	padding: 2px 4px;
+	cursor: pointer;
+}
+
+.top-pill:hover { color: var(--ink); }
+.top-pill.is-on { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* The same 44px floor the transport and the picker keep -- at the desktop size
+   these were 22px tall, which is half a thumb. Vertical padding only, and the
+   spacing moves to the container's gap: padding on the sides needed a negative
+   margin to keep the first pill flush with the labels above it, and that made
+   the row wider than the column it sits in. */
+@media (max-width: 1100px) {
+	.top-pill { padding: 13px 0; }
+	.top-kinds, .top-windows { gap: 14px; }
+}
+
+.top-list { list-style: none; margin: 0; padding: 0; }
+
+.top-row { border-bottom: 1px solid var(--line-soft); }
+.top-row:last-child { border-bottom: 0; }
+
+.top-btn {
+	display: grid;
+	grid-template-columns: 16px minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 10px;
+	width: 100%;
+	padding: 6px 0;
+	background: none;
+	border: 0;
+	font: inherit;
+	color: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+
+a.top-btn { text-decoration: none; }
+a.top-btn:hover .top-name,
+button.top-btn:hover .top-name { color: var(--accent); }
+
+.top-rank { font-size: 11px; color: var(--muted); text-align: right; }
+
+.top-main { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+
+.top-name {
+	font-size: 13px;
+	font-weight: 300;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.top-by {
+	font-size: 11px;
+	color: var(--muted);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* Tabular figures so the counts form a column rather than a ragged edge. */
+.top-plays {
+	font-size: 11px;
+	color: var(--muted);
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+
+.top-row.is-playing .top-name { color: var(--accent); }
+
+.top-empty { margin: 0; font-size: 13px; color: var(--muted); width: auto; max-width: none; }
 
 /* ── Leaving one ──────────────────────────────────────────────────────────── */
 

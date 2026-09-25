@@ -48,6 +48,7 @@ const handlers = {
 	'/api/resolve': () => import('../api/resolve.js'),
 	'/api/queue': () => import('../api/queue.js'),
 	'/api/search': () => import('../api/search.js'),
+	'/api/top': () => import('../api/top.js'),
 };
 
 createServer(async (req, res) => {

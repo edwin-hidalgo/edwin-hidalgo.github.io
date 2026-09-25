@@ -20,6 +20,7 @@ import { startMarquee } from './marquee.js';
 import { renderTicker, startTicker } from './ticker.js';
 import { renderQueue, applyMarks } from './queue.js';
 import { mountLeave } from './leave.js';
+import { mountTop } from './top.js';
 import { icon } from '../icons.js';
 import { mountPlayerBar } from '../player/bar.js';
 import * as player from '../player/engine.js';
@@ -109,6 +110,7 @@ export async function boot() {
 				<div class="pin" hidden></div>
 				<section class="queue" hidden></section>
 				<div class="leave-host" hidden></div>
+				<section class="top" hidden></section>
 			</aside>
 		</div>`;
 
@@ -151,6 +153,11 @@ export async function boot() {
 		queueEl.querySelector('[data-leave]')?.addEventListener('click', () => toggle?.());
 	};
 	paintQueue(queue);
+
+	// Its own fetch, deliberately: a tally over a year is a different question
+	// from the last hundred scrobbles, and it caches for an hour where the log
+	// caches for thirty seconds.
+	mountTop(root.querySelector('.top'));
 	// Called on the Lounge too, where it hides itself: the host lives at <body>
 	// level and therefore survives the soft navigation that brought us here.
 	startTicker(renderTicker(payload));

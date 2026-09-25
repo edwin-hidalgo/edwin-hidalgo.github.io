@@ -25,7 +25,11 @@ import { createHash, randomUUID } from 'node:crypto';
 // How many waiting songs the page shows. Played ones drop out of the queue
 // after a day: they have done their job, and they live on in the log with the
 // visitor's mark against them.
-const SHOWN = 8;
+//
+// Five, not eight: the left column now carries the pinned song, the queue AND
+// the top charts, and eight of each pushed the room well past the fold the
+// Lounge has kept since it was built.
+const SHOWN = 5;
 const PLAYED_TTL_MS = 24 * 60 * 60 * 1000;
 
 // One submission per visitor per day, enforced by an atomic blob create rather
