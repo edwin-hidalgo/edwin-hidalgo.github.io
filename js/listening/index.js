@@ -137,7 +137,7 @@ export async function boot() {
 	const paintQueue = q => {
 		renderQueue(queueEl, q);
 		applyMarks(latelyEl, q?.marks);
-		const toggle = mountLeave(leaveHost, q?.emoji, async song => {
+		const toggle = mountLeave(leaveHost, async song => {
 			// Show it immediately, using what the server actually returned rather
 			// than anything this page invented. Re-reading alone would not do:
 			// the queue's view is CDN-cached for thirty seconds, so a visitor who

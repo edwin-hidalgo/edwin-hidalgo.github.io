@@ -47,6 +47,7 @@ const handlers = {
 	'/api/lately': () => import('../api/lately.js'),
 	'/api/resolve': () => import('../api/resolve.js'),
 	'/api/queue': () => import('../api/queue.js'),
+	'/api/search': () => import('../api/search.js'),
 };
 
 createServer(async (req, res) => {

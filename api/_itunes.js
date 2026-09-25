@@ -14,6 +14,7 @@
 import { fold } from './_fold.js';
 
 const ITUNES = 'https://itunes.apple.com/search';
+const LOOKUP = 'https://itunes.apple.com/lookup';
 const TIMEOUT_MS = 8000;
 
 // itunes.apple.com/search sniffs the User-Agent: an iPhone UA gets a 301 to a
@@ -95,4 +96,69 @@ export function searchLinks(artist, track) {
       exact: false,
     },
   };
+}
+
+// One track's worth of catalogue, in the shape both the picker and the queue
+// want. Apple's own spelling throughout -- that is what Edwin's scrobbles will
+// carry, and the play-detection compares against it.
+function shape(hit) {
+  return {
+    id: String(hit.trackId ?? ''),
+    artist: hit.artistName ?? '',
+    track: hit.trackName ?? '',
+    album: hit.collectionName ?? null,
+    // Apple serves any size from the same path; 100x100 is too small to show.
+    artwork: (hit.artworkUrl100 || hit.artworkUrl60 || '').replace('100x100', '200x200') || null,
+    appleUrl: hit.trackViewUrl || null,
+    previewUrl: hit.previewUrl || null,
+    explicit: hit.trackExplicitness === 'explicit'
+      || hit.collectionExplicitness === 'explicit',
+  };
+}
+
+// What the picker shows. A visitor searches, sees real songs with their
+// artwork, and taps one -- which is a better question to answer than "type the
+// artist and the title exactly as Apple spells them", and it removes the whole
+// class of near-miss where the resolver quietly returned a different recording.
+//
+// Explicit tracks are dropped here rather than refused at submission. Offering
+// something and then rejecting it is a worse experience than never offering it.
+export async function searchTracks(term, limit = 8) {
+  const url = `${ITUNES}?term=${encodeURIComponent(term)}&media=music&entity=song&limit=25`;
+  const upstream = await fetch(url, {
+    headers: { 'user-agent': UA, accept: 'application/json' },
+    signal: AbortSignal.timeout(TIMEOUT_MS),
+  });
+  if (!upstream.ok) return [];
+  const json = await upstream.json();
+  const seen = new Set();
+  const out = [];
+  for (const hit of json?.results ?? []) {
+    const s = shape(hit);
+    if (!s.id || !s.artist || !s.track || s.explicit) continue;
+    // Apple lists the same song once per release. One row per recording.
+    const key = `${fold(s.artist)}|${fold(s.track)}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(s);
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+
+// Re-read the chosen track by its id rather than trusting what the page sent.
+// The visitor picked a specific recording; looking it up again means what gets
+// stored is exactly that, and a caller who skips the picker gets the same
+// treatment as one who used it.
+export async function lookupTrack(id) {
+  if (!/^\d{1,20}$/.test(String(id ?? ''))) return null;
+  const upstream = await fetch(`${LOOKUP}?id=${encodeURIComponent(id)}&entity=song`, {
+    headers: { 'user-agent': UA, accept: 'application/json' },
+    signal: AbortSignal.timeout(TIMEOUT_MS),
+  });
+  if (!upstream.ok) return null;
+  const json = await upstream.json();
+  const hit = (json?.results ?? []).find(r => r.wrapperType === 'track' || r.kind === 'song');
+  if (!hit?.trackId) return null;
+  return shape(hit);
 }

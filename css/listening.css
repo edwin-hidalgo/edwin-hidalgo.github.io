@@ -780,7 +780,6 @@
    with nothing here at all -- hence a separate span rather than a reserved
    column. */
 .q-sign { color: var(--muted-strong); }
-.q-emoji { font-size: 12px; }
 .q-initials { letter-spacing: 0.04em; }
 
 .q-when { font-size: 11px; color: var(--muted); flex: none; white-space: nowrap; }
@@ -863,37 +862,96 @@
 .leave-field input:focus { outline: none; border-bottom-color: var(--accent); }
 .leave-initials input { max-width: 5em; text-transform: uppercase; }
 
-.leave-emoji { border: 0; padding: 0; margin: 0; min-width: 0; }
-.leave-emoji legend { font-size: 11px; color: var(--accent); letter-spacing: 0.04em; padding: 0; }
-.leave-emoji em { font-style: normal; color: var(--muted); letter-spacing: 0; }
+/* The results of a search, which is the whole picker now. */
+.leave-results { display: flex; flex-direction: column; }
+.leave-results:empty { display: none; }
 
-.leave-emoji-grid {
+.leave-result {
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(34px, 1fr));
-	gap: 2px;
-	margin-top: 8px;
-}
-
-.leave-emoji-btn {
-	font-size: 16px;
-	line-height: 1;
+	grid-template-columns: 36px minmax(0, 1fr);
+	align-items: center;
+	gap: 10px;
+	width: 100%;
+	padding: 7px 0;
 	background: none;
-	border: 1px solid transparent;
-	border-radius: 3px;
-	padding: 6px 0;
+	border: 0;
+	border-bottom: 1px solid var(--line-soft);
+	font: inherit;
+	color: inherit;
+	text-align: left;
 	cursor: pointer;
 }
 
-.leave-emoji-btn:hover { background: var(--line-soft); }
-.leave-emoji-btn.is-chosen { border-color: var(--accent); background: var(--line-soft); }
+.leave-result:last-child { border-bottom: 0; }
+.leave-result:hover .leave-result-track { color: var(--accent); }
 
-/* Same 44px floor the transport keeps on a phone. At the desktop size these
-   were 38x30, which is a miss waiting to happen on the control the feature is
-   most charming for. */
-@media (max-width: 1100px) {
-	.leave-emoji-grid { grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); }
-	.leave-emoji-btn { min-height: 44px; font-size: 20px; }
+.leave-result-art,
+.leave-chosen-art {
+	width: 36px;
+	height: 36px;
+	flex: none;
+	border-radius: 2px;
+	overflow: hidden;
+	background: var(--line-soft);
 }
+
+.leave-result-art img,
+.leave-chosen-art img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+.leave-result-main,
+.leave-chosen-main { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+
+.leave-result-track,
+.leave-chosen-track {
+	font-size: 14px;
+	font-weight: 300;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.leave-result-artist,
+.leave-chosen-artist {
+	font-size: 11px;
+	color: var(--muted);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.leave-none { margin: 6px 0 0; font-size: 12px; color: var(--muted); width: auto; max-width: none; }
+
+/* What they picked, held where the results were, so the choice is plainly the
+   thing that will be left. */
+.leave-chosen {
+	display: grid;
+	grid-template-columns: 36px minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 10px;
+	padding: 8px;
+	border: 1px solid var(--accent);
+	border-radius: 3px;
+}
+
+.leave-chosen[hidden] { display: none; }
+
+.leave-clear {
+	font: inherit;
+	font-size: 11px;
+	color: var(--muted);
+	background: none;
+	border: 0;
+	padding: 4px;
+	cursor: pointer;
+}
+
+.leave-clear:hover { color: var(--ink); }
+
+/* The same 44px floor the transport keeps on a phone. */
+@media (max-width: 1100px) {
+	.leave-result { padding: 10px 0; }
+}
+
 
 .leave-note { margin: 0; font-size: 12px; color: var(--muted); width: auto; max-width: none; min-height: 1.2em; }
 

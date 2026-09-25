@@ -11,15 +11,15 @@
 // refuse that kind of overclaim.
 //
 // Nothing here is moderated. What keeps that safe is that a visitor never
-// authors anything: they choose from Apple's catalogue, sign with up to three
-// letters and an emoji from a fixed set, and that is the entire surface. The
-// one thing the catalogue does not protect against is its own titles, which is
-// what the explicit check is for.
+// authors anything: they search Apple's catalogue, tap a real recording, and
+// may sign with up to three letters. That is the entire surface. The one thing
+// the catalogue does not protect against is its own titles, which is why
+// explicit tracks are dropped from the search results AND refused here.
 
 import { recentTracks } from './_lastfm.js';
 import { fold, sameTrack } from './_fold.js';
 import { readView, listSongs, writeSong, rebuildView, claimSubmission, sweepThrottle, blobConfigured } from './_store.js';
-import { fromItunes, searchLinks } from './_itunes.js';
+import { lookupTrack, searchLinks } from './_itunes.js';
 import { createHash, randomUUID } from 'node:crypto';
 
 // How many waiting songs the page shows. Played ones drop out of the queue
@@ -33,20 +33,6 @@ const PLAYED_TTL_MS = 24 * 60 * 60 * 1000;
 // throttled anything, and unmoderated plus unthrottled means one person with a
 // script owns the room -- which breaks the feature long before anything
 // offensive does.
-
-const MAX_ARTIST = 200;
-const MAX_TRACK = 300;
-
-// A curated set rather than a text field. One emoji is often two UTF-16 code
-// units and a ZWJ sequence is eleven, so any length cap on free input either
-// rejects valid emoji or admits long sequences; combining marks render outside
-// their row and bidi controls reverse the text around them. A fixed list has
-// none of those problems and doubles as the data the picker is built from.
-export const EMOJI = [
-  '🌊', '🌙', '☀️', '🔥', '🌱', '🍊', '🪩', '🎧', '📻', '🎸',
-  '🥁', '🎹', '🕊️', '🐝', '🦊', '🐋', '🌵', '🍄', '⛰️', '🛰️',
-  '☕', '🚲', '✈️', '🌀', '❄️', '⚡', '🪐', '🫧', '🧊', '🪁',
-];
 
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -71,7 +57,6 @@ const publicShape = s => ({
   preview: s.preview ?? null,
   links: s.links ?? {},
   initials: s.initials ?? null,
-  emoji: s.emoji ?? null,
   submittedAt: s.submittedAt,
   playedAt: s.playedAt ?? null,
 });
@@ -130,11 +115,11 @@ const bad = (res, reason, status = 200) =>
 export default async function handler(req, res) {
   if (process.env.GUEST_SONGS_ENABLED === '0') {
     res.setHeader('cache-control', 'public, s-maxage=30');
-    return res.status(200).json({ off: true, songs: [], marks: [], emoji: EMOJI });
+    return res.status(200).json({ off: true, songs: [], marks: [] });
   }
   if (!blobConfigured()) {
     res.setHeader('cache-control', 'no-store');
-    return res.status(200).json({ off: true, songs: [], marks: [], emoji: EMOJI });
+    return res.status(200).json({ off: true, songs: [], marks: [] });
   }
 
   if (req.method === 'POST') return submit(req, res);
@@ -170,13 +155,11 @@ export default async function handler(req, res) {
       artist: s.matchedArtist,
       track: s.matchedTrack,
       initials: s.initials ?? null,
-      emoji: s.emoji ?? null,
     }));
 
   return res.status(200).json({
     songs: visible(songs).map(publicShape),
     marks,
-    emoji: EMOJI,
   });
 }
 
@@ -186,56 +169,44 @@ async function submit(req, res) {
   const body = await readBody(req);
   if (!body) return bad(res, 'no_body');
 
-  const artist = String(body.artist ?? '').trim();
-  const track = String(body.track ?? '').trim();
-  if (!artist || !track) return bad(res, 'incomplete');
-  if (artist.length > MAX_ARTIST || track.length > MAX_TRACK) return bad(res, 'too_long');
+  // The visitor picked a specific recording in the picker, so the id is what
+  // arrives -- not a spelling to be searched for again. Looked up server-side
+  // rather than trusted, so what gets stored is exactly the track they chose
+  // and a caller who skips the picker is held to the same rule.
+  const apple = await lookupTrack(body.trackId).catch(() => null);
+  if (!apple) return bad(res, 'not_found');
+
+  // The picker never offers these, so reaching here means the request did not
+  // come from it. The catalogue is full of titles Edwin would not want on his
+  // own site, and a stranger does not have to type one -- only find one.
+  if (apple.explicit) return bad(res, 'explicit');
 
   const initials = String(body.initials ?? '').trim();
   if (initials && !/^[A-Za-z]{1,3}$/.test(initials)) return bad(res, 'bad_initials');
 
-  const emoji = String(body.emoji ?? '').trim();
-  if (emoji && !EMOJI.includes(emoji)) return bad(res, 'bad_emoji');
+  const artist = apple.artist;
+  const track = apple.track;
+  if (!artist || !track) return bad(res, 'incomplete');
 
-  // The submission has to name a real track. This is most of why the feature is
-  // safe without moderation: a visitor is choosing from Apple's catalogue, not
-  // authoring anything. Looked up server-side rather than trusting what the
-  // page sent, so a caller who skips the front end gets the same treatment.
-  let apple = null;
-  try {
-    apple = await fromItunes(artist, track);
-  } catch {
-    apple = null;
-  }
-  if (!apple) return bad(res, 'not_found');
-
-  // The one thing Apple's catalogue does not protect against is its own
-  // titles. A stranger who wants something ugly on Edwin's site does not have
-  // to type it -- they can find a real track already called it.
-  if (apple.explicit) return bad(res, 'explicit');
 
   const links = searchLinks(artist, track);
   if (apple.appleUrl) links.appleMusic = { url: apple.appleUrl, exact: true };
 
   const hash = visitorHash(req);
   const day = today();
-  // Apple's spelling wins over the visitor's. It is the spelling Edwin's
-  // scrobbles will carry too, which is what the play-detection compares.
-  const finalArtist = apple.appleArtist || artist;
-  const finalTrack = apple.appleTrack || track;
   const entry = {
     id: randomUUID(),
-    artist: finalArtist,
-    track: finalTrack,
+    trackId: apple.id,
+    artist,
+    track,
     art: apple.artwork ?? null,
     preview: apple.previewUrl
       ? { url: apple.previewUrl, seconds: 30, source: 'Apple Music' }
       : null,
     links,
     initials: initials || null,
-    emoji: emoji || null,
-    foldArtist: fold(finalArtist),
-    foldTrack: fold(finalTrack),
+    foldArtist: fold(artist),
+    foldTrack: fold(track),
     submittedAt: Date.now(),
     playedAt: null,
     hidden: false,
