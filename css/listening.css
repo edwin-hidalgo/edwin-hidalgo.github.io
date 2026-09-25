@@ -445,12 +445,24 @@
 .room-head,
 .pin-head {
 	display: flex;
-	align-items: center;
+	/* flex-start, not center. Centred, the 42px Play button in a 44px row began
+	   at 208 while the labels beside it began at 221 -- so the control sat above
+	   the thing it belongs to, and read as taking precedence over the section
+	   labels. Aligned to the top, nothing rises above a label. The min-height
+	   stays: it is what keeps .pin-head and .room-head equal so the two columns
+	   start their content on the same line. */
+	align-items: flex-start;
 	justify-content: space-between;
 	gap: 20px;
 	min-height: 44px;
 	margin-bottom: 18px;
 }
+
+/* The label is the top of the section, and the action hangs below its line --
+   not level with it, so there is no ambiguity about which of the two is the
+   heading. Two pixels is enough to read as deliberate without costing height. */
+.room-head .play-all,
+.room-head .q-open { margin-top: 3px; }
 
 /* One label, two columns. Left is an h1 and right is a p, so without this they
    inherit different line-heights and different widths and sit on different
@@ -1251,6 +1263,15 @@ a.top-btn:hover .top-out { opacity: 1; }
 	   rule colour and sits near 1.4:1 against --ground. */
 	.ticker-artist { color: var(--muted-strong); }
 	.ticker-item::after { opacity: .45; }
+}
+
+/* Artwork belongs to the phone, not to a narrow window. The rule above is
+   width-based, so dragging a desktop window under 1101px brought the album art
+   back on a machine that is plainly not a phone. A pointer query asks the right
+   question: a mouse means desktop at any width, and a finger keeps its
+   artwork even in landscape. */
+@media (pointer: fine) {
+	.ticker-art { display: none; }
 }
 
 /* ── The photo modal (touch) ──────────────────────────────────────────────── */
