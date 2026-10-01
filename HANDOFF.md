@@ -19,6 +19,9 @@ including asks that are deliberately not being done.
 | 2 | Projects tab: add **app34** (app34.app) **below MyMusicMemory, above Glue**. Role "Making apps out of memes"; summary approved 2026-10-01 | 2026-10-01 | **done 2026-10-01**: logo is app34's own `icon.png` as `img/portfolio/logo-app34.png`. First shipped after Glue (misread); Edwin corrected the placement the same day |
 | 3 | A local tool to hide a visitor song (`tools/song.mjs list / hide / unhide`), using the `hidden` flag `api/queue.js` already honours | 2026-10-01 | **done 2026-10-01**: 13 tests plus a sabotage check, and a live end-to-end cycle on production with a throwaway song. Edwin says "hide the song by X"; the agent runs `list`, then `hide <id>` |
 | 10 | `api/queue.js` reconcile rewrote **every** played song whenever a new play matched, using whatever `listSongs()` had just read. A song hidden in the last ~minute could read back stale and be saved un-hidden, and every new match cost a Blob write per played song | 2026-10-01 | **done 2026-10-01**: `newlyPlayed()` saves only the songs `reconcile` changed (identity test). 4 tests plus a sabotage check. The live write path runs only when Edwin plays a song someone left, so it is first exercised by a real play. Residual: a song hidden within a minute AND played by Edwin in that same minute could still read stale |
+| 11 | A link-preview (OG) card with Edwin's main picture | 2026-10-01 | **done 2026-10-01**: option B (the photo is the card; the name sits on the wall; edwinhidalgo.com in petrol; his own bio line). Chosen over text-left/photo-right because square-cropping apps cut that one at the seam. No live data on it, since previews are cached for days. `img/og.jpg` (181 KB) is made by `tools/og/card.html`; every page carries og:/twitter: tags with its own title and description |
+| 12 | Five unused photos from the old site were still served from the domain; `img/edwin.jpg` (2019) carried a **GPS location** | 2026-10-01 | **done 2026-10-01**: deleted from `listening-room` (`edwin.jpg`, `edwin2.jpeg`, `blueno.jpg`, `winter.jpg`, `hi.jpg`). A test now fails if any JPEG in the repo carries GPS |
+| 13 | Those photos, `edwin.jpg` with its GPS included, remain in the **public repo's git history** and on `master` (reachable via raw.githubusercontent.com) | 2026-10-01 | **Edwin's call.** Removing them fully means rewriting history and force-pushing every branch; the domain no longer serves them |
 | 4 | Group recent listens by day ("Today · 44 tracks · 8:18am–8:06pm") | 2026-09-25 | optional, not started. Session grouping was rejected: labels repeat ("This evening" twice) |
 | 5 | Vendor `particles.min.js` instead of jsDelivr | 2026-09-24 | offered, undecided. Edwin saw the dots vanish on his phone once; not reproducible |
 | 6 | Move DNS to Vercel's newer records (two apex A records + a project-specific CNAME) | 2026-09-24 | optional, Edwin's. Current records work |
@@ -84,7 +87,7 @@ Plain ES modules, no build step. The front end has zero dependencies; the only p
 | Photos | `js/hover.js` (desktop ≥1351px, portrait up by default), `js/photo-modal.js` (touch) |
 | API | `api/lately.js` (Last.fm recent, 30s cache, key server-side), `api/top.js`, `api/resolve.js` + `api/search.js` (iTunes Search: exact match first, limit 25, explicit dropped), `api/queue.js` (GET reconciles plays; POST leaves a song), shared `_lastfm.js`, `_itunes.js`, `_fold.js`, `_store.js` |
 | Store | Vercel Blob, public. `songs/<ts>-<id>.json` is the truth, one blob per song. `queue.json` is a derived view rebuilt only on a write. `throttle/<day>/<hash>` is an atomic one-per-visitor-per-day claim |
-| Tools (local only, never deployed) | `tools/serve.mjs`: dev server. `tools/song.mjs`: `list`, `hide <id>`, `unhide <id>` for visitor songs. It reads `BLOB_READ_WRITE_TOKEN` from `.env.local` and keeps the blob, so hiding is always reversible. It retries the rebuild until the view has seen the change |
+| Tools (local only, never deployed) | `tools/serve.mjs`: dev server. `tools/og/card.html` + `portrait.jpg`: the link-preview card, regenerated into `img/og.jpg` with headless Chrome (command in the file). `tools/song.mjs`: `list`, `hide <id>`, `unhide <id>` for visitor songs. It reads `BLOB_READ_WRITE_TOKEN` from `.env.local` and keeps the blob, so hiding is always reversible. It retries the rebuild until the view has seen the change |
 | Tests | `test/run.mjs`: API states, the player state machine against a fake audio element, fold matching, hiding a song |
 
 ## Invariants (measured; keep them true)
@@ -104,7 +107,10 @@ Plain ES modules, no build step. The front end has zero dependencies; the only p
 - Ticker artwork follows the **pointer** (touch shows it, mouse never), not the width.
   12px type everywhere; only the speed changes (28 px/s desktop, 45 phone).
 - Both Lounge lists share `.trk` markup and grid, so their columns line up by construction.
-- `node test/run.mjs` passes (77 as of 2026-10-01).
+- `node test/run.mjs` passes (82 as of 2026-10-01).
+- Every page carries a complete link-preview card (og:title/description/url/image, twitter:card), and
+  `img/og.jpg` stays under 300 KB (WhatsApp drops larger ones). Tested.
+- No photograph in the repo carries a GPS location. Strip it before adding any photo. Tested.
 - A hidden song appears nowhere on the page: not in the queue, and not as a "from" mark in the log.
 
 ## Decision record
@@ -141,6 +147,8 @@ Plain ES modules, no build step. The front end has zero dependencies; the only p
   - app34 added to Projects between MyMusicMemory and Glue; ekos card pointed at the
     hackathon archive.
   - Colours, mobile bar and "no notes" settled.
+  - Link-preview card: photo-led (option B), with no live data on it.
+  - The five unused old photos are off the domain; scrubbing git history is left to Edwin.
 
 ## Traps already paid for
 

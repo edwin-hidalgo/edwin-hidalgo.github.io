@@ -4,6 +4,7 @@
 //
 //   node test/run.mjs
 
+import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import lately from '../api/lately.js';
 import resolve from '../api/resolve.js';
 import { fold, sameish, sameTrack } from '../api/_fold.js';
@@ -402,6 +403,55 @@ ok('a new play saves only the song it matched',
 ok('a song already marked played is not saved again', !toWrite.some(s => s.id === 'p1'));
 ok('a hidden song is never marked played', !toWrite.some(s => s.id === 'h1'));
 ok('no new play saves nothing', newlyPlayed([playedBefore, hiddenSong], scrobbles).length === 0);
+
+// ── what a shared link shows, and what a photo gives away ───────────────────
+//
+// Every page carries a complete preview card. And no photograph in the repo
+// carries a location: one did, a 2019 portrait still served from the domain
+// with its GPS block intact, long after nothing on the site used it.
+console.log('\nlink previews and photos');
+
+const SITE = 'https://www.edwinhidalgo.com/';
+const repoFile = rel => new URL(`../${rel}`, import.meta.url);
+
+for (const page of ['index.html', 'portfolio.html', 'lounge.html']) {
+  const html = readFileSync(repoFile(page), 'utf8');
+  const meta = key => html.match(new RegExp(`<meta (?:property|name)="${key}" content="([^"]*)"`))?.[1];
+  const image = meta('og:image') ?? '';
+  ok(`${page} carries a complete preview card`,
+    Boolean(meta('og:title') && meta('og:description') && meta('og:url'))
+    && image.startsWith(SITE) && existsSync(repoFile(image.slice(SITE.length)))
+    && meta('twitter:card') === 'summary_large_image');
+}
+// WhatsApp silently drops preview images much over 300 KB.
+ok('the preview image is small enough for every app', statSync(repoFile('img/og.jpg')).size < 300_000);
+
+// Walks a JPEG's markers to the Exif segment and looks for the GPSInfo pointer
+// (tag 0x8825) in its first directory.
+function jpegHasGps(buf) {
+  let i = 2;
+  while (i + 4 <= buf.length && buf[i] === 0xFF) {
+    const marker = buf[i + 1];
+    if (marker === 0xDA) break; // image data starts; no metadata after this
+    const len = buf.readUInt16BE(i + 2);
+    if (marker === 0xE1 && buf.toString('latin1', i + 4, i + 10) === 'Exif\0\0') {
+      const t = i + 10;
+      const le = buf.toString('latin1', t, t + 2) === 'II';
+      const u16 = o => (le ? buf.readUInt16LE(t + o) : buf.readUInt16BE(t + o));
+      const u32 = o => (le ? buf.readUInt32LE(t + o) : buf.readUInt32BE(t + o));
+      const ifd = u32(4);
+      for (let k = 0; k < u16(ifd); k++) if (u16(ifd + 2 + k * 12) === 0x8825) return true;
+      return false;
+    }
+    i += 2 + len;
+  }
+  return false;
+}
+const jpegsUnder = dir => readdirSync(repoFile(dir), { recursive: true })
+  .filter(f => /\.jpe?g$/i.test(f)).map(f => `${dir}/${f}`);
+const located = [...jpegsUnder('img'), ...jpegsUnder('tools')]
+  .filter(f => jpegHasGps(readFileSync(repoFile(f))));
+ok('no photograph in the repo carries a GPS location', located.length === 0, located.join(', '));
 
 Object.assign(process.env, env);
 console.log(`\n${fail === 0 ? 'ALL PASS' : 'FAILURES'}  ${pass} passed, ${fail} failed\n`);

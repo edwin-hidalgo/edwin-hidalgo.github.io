@@ -1,0 +1,65 @@
+<!doctype html>
+<!--
+  The link-preview card: img/og.jpg, 1200x630, used by all three pages.
+
+  The photo is the card, and the name sits on the sunlit wall beside it. That
+  layout was chosen over text-left/photo-right because apps that crop previews
+  to a centred square (WhatsApp and others) cut the split layout at the seam,
+  leaving half a name and no face. Here the square lands on the face.
+
+  Nothing live goes on it: previews are cached for days, so "last played"
+  would be stale, the failure that retired the Spotify widget in May 2026.
+
+  Regenerate (WhatsApp ignores images over ~300 KB, so keep the JPEG under it):
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new \
+      --hide-scrollbars --window-size=1200,630 --virtual-time-budget=8000 \
+      --screenshot=/tmp/og.png "file://$PWD/tools/og/card.html"
+    sips -s format jpeg -s formatOptions 84 /tmp/og.png --out img/og.jpg
+  Chrome writes the PNG within a few seconds but may not exit on its own
+  (seen with Chrome 154): stop it once /tmp/og.png exists.
+
+  portrait.jpg is Edwin's original (1122x1402), stored metadata-free. tools/ is
+  never deployed.
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+	html, body { margin: 0; }
+	.card {
+		position: relative;
+		width: 1200px;
+		height: 630px;
+		overflow: hidden;
+		/* 4:5 portrait scaled to the card's width is 1200x1500; -380px puts the
+		   face just above centre and leaves the wall on the left for the name. */
+		background: url(portrait.jpg) no-repeat 0 -380px / 1200px auto;
+		font-family: 'Poppins', sans-serif;
+		color: #282828;
+	}
+	.text {
+		position: absolute;
+		left: 64px;
+		top: 0;
+		bottom: 0;
+		width: 430px;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+	}
+	.site { font-size: 22px; font-weight: 500; color: #2C5A6B; margin-bottom: 24px; }
+	.name { font-size: 68px; font-weight: 400; line-height: 1.05; margin: 0; }
+	.line { font-size: 27px; font-weight: 300; color: #444; margin-top: 20px; line-height: 1.35; }
+</style>
+</head>
+<body>
+	<div class="card">
+		<div class="text">
+			<div class="site">edwinhidalgo.com</div>
+			<h1 class="name">Edwin Hidalgo</h1>
+			<div class="line">Product manager + digital creative, based in NYC</div>
+		</div>
+	</div>
+</body>
+</html>
