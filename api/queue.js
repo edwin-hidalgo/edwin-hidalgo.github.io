@@ -93,6 +93,16 @@ function reconcile(songs, scrobbles) {
   return { songs: next, changed };
 }
 
+// The songs a new play actually changed, and only those. Writing back every
+// played song re-saved copies read moments earlier, and a blob overwritten in
+// the last minute can read back stale -- so a song just hidden with
+// tools/song.mjs could be saved again un-hidden. It also cost a Blob write per
+// played song on every new match. reconcile() returns the same object for any
+// song it leaves alone, so identity is the test.
+export function newlyPlayed(listed, scrobbles) {
+  return reconcile(listed, scrobbles).songs.filter((s, i) => s !== listed[i]);
+}
+
 // Exported for the tests: these two decide what the page can see, which is what
 // tools/song.mjs's `hide` relies on.
 export function visible(songs) {
@@ -161,9 +171,9 @@ export default async function handler(req, res) {
     // Best effort: the response already reflects it, and a failure here just
     // means the next reader does the same work.
     (async () => {
-      const fresh = reconcile(await listSongs(), scrobbles);
-      if (!fresh.changed) return;
-      await Promise.all(fresh.songs.filter(s => s.playedAt).map(writeSong));
+      const played = newlyPlayed(await listSongs(), scrobbles);
+      if (!played.length) return;
+      await Promise.all(played.map(writeSong));
       await rebuildView();
     })().catch(() => {});
   }

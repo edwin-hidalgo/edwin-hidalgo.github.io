@@ -7,7 +7,7 @@
 import lately from '../api/lately.js';
 import resolve from '../api/resolve.js';
 import { fold, sameish, sameTrack } from '../api/_fold.js';
-import { visible, marksFor } from '../api/queue.js';
+import { visible, marksFor, newlyPlayed } from '../api/queue.js';
 import { findSong, run as songTool } from '../tools/song.mjs';
 
 let pass = 0;
@@ -382,6 +382,26 @@ ok('a view that never catches up is reported, not claimed as done', code === 1);
 store = fakeStore([left('abcd-1'), left('abcd-2')]);
 code = await songTool(['hide', 'abcd'], store, quiet, noWait);
 ok('an ambiguous id writes nothing', code === 1 && store.writes.length === 0);
+
+// When a play is detected, only the song it changed is saved. Re-saving every
+// played song wrote back copies that could be a minute stale -- un-hiding a
+// song hidden in that minute.
+const waiting = { ...left('w1'), artist: 'Nick Drake', track: 'Pink Moon',
+  foldArtist: fold('Nick Drake'), foldTrack: fold('Pink Moon') };
+const playedBefore = { ...left('p1', heard), foldArtist: fold('lvusm'), foldTrack: fold('Meow') };
+const hiddenSong = { ...left('h1', { hidden: true }), artist: 'Bon Iver', track: 'Holocene',
+  foldArtist: fold('Bon Iver'), foldTrack: fold('Holocene') };
+const scrobbles = [
+  { artist: 'Nick Drake', track: 'Pink Moon (2011 Remaster)', playedAt: 5 },
+  { artist: 'lvusm', track: 'Meow', playedAt: 6 },
+  { artist: 'Bon Iver', track: 'Holocene', playedAt: 7 },
+];
+const toWrite = newlyPlayed([waiting, playedBefore, hiddenSong], scrobbles);
+ok('a new play saves only the song it matched',
+  toWrite.length === 1 && toWrite[0].id === 'w1' && toWrite[0].playedAt === 5);
+ok('a song already marked played is not saved again', !toWrite.some(s => s.id === 'p1'));
+ok('a hidden song is never marked played', !toWrite.some(s => s.id === 'h1'));
+ok('no new play saves nothing', newlyPlayed([playedBefore, hiddenSong], scrobbles).length === 0);
 
 Object.assign(process.env, env);
 console.log(`\n${fail === 0 ? 'ALL PASS' : 'FAILURES'}  ${pass} passed, ${fail} failed\n`);
