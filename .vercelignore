@@ -1,3 +1,5 @@
 # Nothing here needs to be served from the domain.
 test
 tools
+# Notes for whoever works on this repo, never for visitors.
+*.md
