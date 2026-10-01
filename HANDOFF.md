@@ -17,7 +17,8 @@ including asks that are deliberately not being done.
 |---|---|---|---|
 | 1 | Projects tab: update the ekos card exactly per `~/Documents/verified-fan-app/PORTFOLIO-EKOS-CARD.md`, **draft A**; do not edit the ekos repo | 2026-10-01 | **done 2026-10-01**: archive link, "· World Build 3 hackathon", draft A verbatim (string-compared against the doc). The ekos repo is untouched; report back via Edwin |
 | 2 | Projects tab: add **app34** (app34.app) **below MyMusicMemory, above Glue**. Role "Making apps out of memes"; summary approved 2026-10-01 | 2026-10-01 | **done 2026-10-01**: logo is app34's own `icon.png` as `img/portfolio/logo-app34.png`. First shipped after Glue (misread); Edwin corrected the placement the same day |
-| 3 | A local tool to hide a visitor song (`tools/song.mjs list / hide / unhide`), using the `hidden` flag `api/queue.js` already honours | 2026-10-01 | approved in principle, **next (step 3)** |
+| 3 | A local tool to hide a visitor song (`tools/song.mjs list / hide / unhide`), using the `hidden` flag `api/queue.js` already honours | 2026-10-01 | **done 2026-10-01**: 13 tests plus a sabotage check, and a live end-to-end cycle on production with a throwaway song. Edwin says "hide the song by X"; the agent runs `list`, then `hide <id>` |
+| 10 | `api/queue.js` reconcile rewrites **every** played song whenever a new play matches, using whatever `listSongs()` just read. A song hidden in the last ~minute can read back stale and be written back un-hidden. It also spends a Blob write per played song per new match. Fix: write only the songs `reconcile` changed | 2026-10-01 | **found during step 3, not fixed.** Production code outside that step's scope; needs Edwin's go |
 | 4 | Group recent listens by day ("Today · 44 tracks · 8:18am–8:06pm") | 2026-09-25 | optional, not started. Session grouping was rejected: labels repeat ("This evening" twice) |
 | 5 | Vendor `particles.min.js` instead of jsDelivr | 2026-09-24 | offered, undecided. Edwin saw the dots vanish on his phone once; not reproducible |
 | 6 | Move DNS to Vercel's newer records (two apex A records + a project-specific CNAME) | 2026-09-24 | optional, Edwin's. Current records work |
@@ -83,7 +84,8 @@ Plain ES modules, no build step. The front end has zero dependencies; the only p
 | Photos | `js/hover.js` (desktop ≥1351px, portrait up by default), `js/photo-modal.js` (touch) |
 | API | `api/lately.js` (Last.fm recent, 30s cache, key server-side), `api/top.js`, `api/resolve.js` + `api/search.js` (iTunes Search: exact match first, limit 25, explicit dropped), `api/queue.js` (GET reconciles plays; POST leaves a song), shared `_lastfm.js`, `_itunes.js`, `_fold.js`, `_store.js` |
 | Store | Vercel Blob, public. `songs/<ts>-<id>.json` is the truth, one blob per song. `queue.json` is a derived view rebuilt only on a write. `throttle/<day>/<hash>` is an atomic one-per-visitor-per-day claim |
-| Tests | `test/run.mjs`: API states, the player state machine against a fake audio element, fold matching |
+| Tools (local only, never deployed) | `tools/serve.mjs`: dev server. `tools/song.mjs`: `list`, `hide <id>`, `unhide <id>` for visitor songs. It reads `BLOB_READ_WRITE_TOKEN` from `.env.local` and keeps the blob, so hiding is always reversible. It retries the rebuild until the view has seen the change |
+| Tests | `test/run.mjs`: API states, the player state machine against a fake audio element, fold matching, hiding a song |
 
 ## Invariants (measured; keep them true)
 
@@ -102,7 +104,8 @@ Plain ES modules, no build step. The front end has zero dependencies; the only p
 - Ticker artwork follows the **pointer** (touch shows it, mouse never), not the width.
   12px type everywhere; only the speed changes (28 px/s desktop, 45 phone).
 - Both Lounge lists share `.trk` markup and grid, so their columns line up by construction.
-- `node test/run.mjs` passes (60 as of 2026-10-01).
+- `node test/run.mjs` passes (73 as of 2026-10-01).
+- A hidden song appears nowhere on the page: not in the queue, and not as a "from" mark in the log.
 
 ## Decision record
 
@@ -154,6 +157,11 @@ Plain ES modules, no build step. The front end has zero dependencies; the only p
   has a 500px minimum width unless device metrics are overridden.
 - Blob `list()` is an Advanced Operation (2,000/month on Hobby). List only on writes, never
   per request.
+- An overwritten blob can read back stale from the CDN for up to a minute. Anything that
+  writes and then rebuilds must check the rebuild saw the write (see `tools/song.mjs`),
+  and nothing should write back a copy it read during that window (see item 10).
+- Removing a visitor song in the Vercel dashboard does not take it off the page. The page
+  reads `queue.json`, and deleting that too empties the list. Use `tools/song.mjs`.
 - Apple search rate-limits around 20 calls a minute per address. The picker debounces
   350ms and caches an hour at the edge.
 - A heredoc once wrote literal NUL bytes into source. `grep -P '\x00'` before committing

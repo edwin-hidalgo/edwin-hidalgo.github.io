@@ -93,7 +93,9 @@ function reconcile(songs, scrobbles) {
   return { songs: next, changed };
 }
 
-function visible(songs) {
+// Exported for the tests: these two decide what the page can see, which is what
+// tools/song.mjs's `hide` relies on.
+export function visible(songs) {
   const cutoff = Date.now() - PLAYED_TTL_MS;
   return songs
     .filter(s => !s.hidden)
@@ -104,6 +106,20 @@ function visible(songs) {
       return (b.submittedAt ?? 0) - (a.submittedAt ?? 0);
     })
     .slice(0, SHOWN);
+}
+
+// Which rows in the recent-listens list came from a visitor. Sent separately
+// from the queue because the log is a different list with a different
+// lifetime: a played song leaves the queue after a day but stays in the log
+// for as long as it is among the last hundred scrobbles.
+export function marksFor(songs) {
+  return songs
+    .filter(s => s.playedAt && s.matchedArtist && !s.hidden)
+    .map(s => ({
+      artist: s.matchedArtist,
+      track: s.matchedTrack,
+      initials: s.initials ?? null,
+    }));
 }
 
 async function readBody(req) {
@@ -152,21 +168,9 @@ export default async function handler(req, res) {
     })().catch(() => {});
   }
 
-  // Which rows in the recent-listens list came from a visitor. Sent separately
-  // from the queue because the log is a different list with a different
-  // lifetime: a played song leaves the queue after a day but stays in the log
-  // for as long as it is among the last hundred scrobbles.
-  const marks = songs
-    .filter(s => s.playedAt && s.matchedArtist && !s.hidden)
-    .map(s => ({
-      artist: s.matchedArtist,
-      track: s.matchedTrack,
-      initials: s.initials ?? null,
-    }));
-
   return res.status(200).json({
     songs: visible(songs).map(publicShape),
-    marks,
+    marks: marksFor(songs),
   });
 }
 

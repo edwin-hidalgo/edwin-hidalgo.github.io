@@ -7,6 +7,8 @@
 import lately from '../api/lately.js';
 import resolve from '../api/resolve.js';
 import { fold, sameish, sameTrack } from '../api/_fold.js';
+import { visible, marksFor } from '../api/queue.js';
+import { findSong, run as songTool } from '../tools/song.mjs';
 
 let pass = 0;
 let fail = 0;
@@ -312,6 +314,74 @@ ok('empty folds never match',
 // treated "with" as a featuring marker and ate the whole title.
 ok('"With Love, Pt. 7" survives folding', fold('With Love, Pt. 7') === 'withlovept7');
 ok('"Dancing With Myself" survives folding', fold('Dancing With Myself') === 'dancingwithmyself');
+
+// ── hiding a song ───────────────────────────────────────────────────────────
+//
+// tools/song.mjs is how a song Edwin does not want comes off the page. These
+// pin both halves: the tool flags exactly one song, and every surface the page
+// reads leaves a flagged song out.
+console.log('\nhiding a song');
+
+const left = (id, extra = {}) => ({
+  id, artist: 'lvusm', track: 'Meow', initials: 'CH',
+  submittedAt: 1, playedAt: null, hidden: false, ...extra,
+});
+const heard = { playedAt: Date.now(), matchedArtist: 'lvusm', matchedTrack: 'Meow' };
+
+ok('the queue leaves a hidden song out',
+  visible([left('a1'), left('b2', { hidden: true })]).map(s => s.id).join() === 'a1');
+ok('the log drops its "from" mark when the song is hidden',
+  marksFor([left('a1', { ...heard, hidden: true })]).length === 0
+  && marksFor([left('a1', heard)]).length === 1);
+
+ok('a unique id prefix finds its song',
+  findSong([left('abcd-1'), left('abce-2')], 'abcd').song?.id === 'abcd-1');
+ok('an ambiguous prefix is refused, not guessed',
+  Boolean(findSong([left('abcd-1'), left('abcd-2')], 'abcd').error));
+ok('a too-short prefix is refused', Boolean(findSong([left('abcd-1')], 'ab').error));
+ok('an unknown id is refused', Boolean(findSong([left('abcd-1')], 'zzzz').error));
+
+// Behaves like the real store, including the part that bit before: a blob
+// overwritten moments ago can read back stale, so a rebuild may not see it yet.
+function fakeStore(songs, { staleRebuilds = 0 } = {}) {
+  const before = songs.map(s => ({ ...s }));
+  const blobs = new Map(songs.map(s => [s.id, s]));
+  const st = { writes: [], rebuilds: 0 };
+  st.listSongs = async () => [...blobs.values()];
+  st.writeSong = async s => { st.writes.push(s); blobs.set(s.id, s); };
+  st.rebuildView = async () => (++st.rebuilds <= staleRebuilds ? before : [...blobs.values()]);
+  return st;
+}
+const quiet = () => {};
+const noWait = async () => {};
+
+let store = fakeStore([left('abcd-1'), left('efgh-2')]);
+let code = await songTool(['hide', 'abcd'], store, quiet, noWait);
+ok('hide writes exactly one song, flagged',
+  code === 0 && store.writes.length === 1
+  && store.writes[0].id === 'abcd-1' && store.writes[0].hidden === true);
+ok('hide leaves every other song alone',
+  (await store.listSongs()).find(s => s.id === 'efgh-2').hidden === false);
+
+code = await songTool(['unhide', 'abcd'], store, quiet, noWait);
+ok('unhide reverses it',
+  code === 0 && store.writes.at(-1).hidden === false && store.writes.at(-1).hiddenAt === null);
+
+store = fakeStore([left('abcd-1', { hidden: true })]);
+code = await songTool(['hide', 'abcd'], store, quiet, noWait);
+ok('hiding a hidden song writes nothing', code === 0 && store.writes.length === 0);
+
+store = fakeStore([left('abcd-1')], { staleRebuilds: 2 });
+code = await songTool(['hide', 'abcd'], store, quiet, noWait);
+ok('a stale rebuild is retried until it has seen the change', code === 0 && store.rebuilds === 3);
+
+store = fakeStore([left('abcd-1')], { staleRebuilds: 99 });
+code = await songTool(['hide', 'abcd'], store, quiet, noWait);
+ok('a view that never catches up is reported, not claimed as done', code === 1);
+
+store = fakeStore([left('abcd-1'), left('abcd-2')]);
+code = await songTool(['hide', 'abcd'], store, quiet, noWait);
+ok('an ambiguous id writes nothing', code === 1 && store.writes.length === 0);
 
 Object.assign(process.env, env);
 console.log(`\n${fail === 0 ? 'ALL PASS' : 'FAILURES'}  ${pass} passed, ${fail} failed\n`);
