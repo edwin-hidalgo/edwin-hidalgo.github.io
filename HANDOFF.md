@@ -16,7 +16,7 @@ including asks that are deliberately not being done.
 | # | Item | Raised | Status |
 |---|---|---|---|
 | 1 | Projects tab: update the ekos card exactly per `~/Documents/verified-fan-app/PORTFOLIO-EKOS-CARD.md`, **draft A**; do not edit the ekos repo | 2026-10-01 | **done 2026-10-01**: archive link, "· World Build 3 hackathon", draft A verbatim (string-compared against the doc). The ekos repo is untouched; report back via Edwin |
-| 2 | Projects tab: add **app34** (app34.app) **after Glue, before Mirrorwerx** (Edwin: "after mymusicmemory and after glue"). Role "Making apps out of memes"; summary approved 2026-10-01 | 2026-10-01 | **done 2026-10-01**: logo is app34's own `icon.png` as `img/portfolio/logo-app34.png` |
+| 2 | Projects tab: add **app34** (app34.app) **below MyMusicMemory, above Glue**. Role "Making apps out of memes"; summary approved 2026-10-01 | 2026-10-01 | **done 2026-10-01**: logo is app34's own `icon.png` as `img/portfolio/logo-app34.png`. First shipped after Glue (misread); Edwin corrected the placement the same day |
 | 3 | A local tool to hide a visitor song (`tools/song.mjs list / hide / unhide`), using the `hidden` flag `api/queue.js` already honours | 2026-10-01 | approved in principle, **next (step 3)** |
 | 4 | Group recent listens by day ("Today · 44 tracks · 8:18am–8:06pm") | 2026-09-25 | optional, not started. Session grouping was rejected: labels repeat ("This evening" twice) |
 | 5 | Vendor `particles.min.js` instead of jsDelivr | 2026-09-24 | offered, undecided. Edwin saw the dots vanish on his phone once; not reproducible |
@@ -135,7 +135,8 @@ Plain ES modules, no build step. The front end has zero dependencies; the only p
   - Photos backlogged.
 - **2026-10-01.**
   - Production branch → `listening-room`.
-  - app34 added to Projects after Glue; ekos card pointed at the hackathon archive.
+  - app34 added to Projects between MyMusicMemory and Glue; ekos card pointed at the
+    hackathon archive.
   - Colours, mobile bar and "no notes" settled.
 
 ## Traps already paid for
